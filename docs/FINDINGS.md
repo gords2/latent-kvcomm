@@ -68,3 +68,34 @@ Everything below needs GPU and is not yet known. Do not cite any number for thes
 - Phase 5 — the integration sweep across `trim_scope` and retention ratio.
 
 The correct `latent_steps` value is not recorded anywhere in the upstream repo: its argparse default is `0` (degenerate — the relay cache is discarded), and the two shipped example logs show `0` and `10`, neither of which matches the table cell it accompanies. It has to be searched over `[0, 80]`.
+
+### D12 — a cached span's mask must be the real historical mask. CONFIRMED.
+
+Discovered during implementation of Task 3, in a fix that itself synthesized
+`torch.ones` for the cached span.
+
+When a KV cache is built from a **left-padded ragged batch** — which every
+LatentMAS relay batch and every KVComm sender batch is — the pad positions were
+correctly masked at write time. Any later call that hands `generate` an all-ones
+mask over the cached span re-enables attention to those pad key/value vectors.
+
+Measured on transformers 4.53.3 with the tiny fixture, a 5-real-token prefix
+left-padded by 2, then a 3-token prompt:
+
+| mask over cached span | greedy continuation |
+|---|---|
+| true historical mask (reference) | `[188, 178, 229, 81, 210, 79]` |
+| synthesized all-ones | `[188, 236, 188, 236, 159, 180]` |
+
+Divergence held across randomized trials at pad counts 1–3 and multiple seeds.
+A raw forward pass put the max logit difference at ≈0.53, comparable to a typical
+top-1/top-2 gap — so this is not numerically inert. Note the contrast with the
+`input_ids` filler for the same span, which **is** provably inert because
+`generate` never re-embeds it.
+
+**Consequence.** `generate_text_batch` and `generate_latent` now both *require* a
+`past_mask` whenever the cache is non-empty, and refuse rather than guess. The
+relay threads one running mask across all four agents; a trim re-cuts it to the
+surviving prefix. Upstream LatentMAS synthesizes the prepended block as ones
+(`stock-latentmas/models.py:374-382`), so it has this defect too, compounding
+with D1.

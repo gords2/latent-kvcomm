@@ -405,7 +405,7 @@ This is the highest-value task in the plan. Upstream computes `prompt_lengths = 
 - Produces:
   - `load_model(model_name: str, device: str, dtype: torch.dtype | None = None) -> tuple[PreTrainedModel, PreTrainedTokenizerBase]` — tokenizer always has `padding_side == "left"` and a non-None `pad_token_id`; model always has `config._attn_implementation == "sdpa"` and `config.use_cache is True`.
   - `pad_batch(tokenizer, texts: list[str]) -> tuple[Tensor, Tensor]` returning `(input_ids, attention_mask)`, left-padded.
-  - `generate_text_batch(model, tokenizer, input_ids: Tensor, attention_mask: Tensor, max_new_tokens: int, greedy: bool, temperature: float = 0.6, top_p: float = 0.95, past_key_values=None) -> tuple[list[str], Tensor]` returning decoded continuations and the full `sequences` tensor.
+  - `generate_text_batch(model, tokenizer, input_ids: Tensor, attention_mask: Tensor, max_new_tokens: int, greedy: bool, temperature: float = 0.6, top_p: float = 0.95, past_key_values=None, past_mask: Tensor | None = None) -> tuple[list[str], Tensor]` returning decoded continuations and the full `sequences` tensor. Callers pass the prompt ALONE for `input_ids` and `attention_mask`; the function prepends the cached span itself. `past_mask` is REQUIRED whenever the cache is non-empty, and must be the mask that was in force when the cache was written — synthesizing ones re-enables attention to pad positions.
   - Task 5 consumes `load_model`; Tasks 5, 8, 14 consume `generate_text_batch`.
 
 - [ ] **Step 1: Write the failing test**
@@ -569,6 +569,17 @@ Two slicing hazards, both of which upstream gets wrong:
    always pass their prompt alone, for BOTH input_ids and attention_mask, and it
    prepends the cached span itself.
 
+3. The cached span's mask must be the REAL historical mask, never all-ones. If the
+   cache was built from a left-padded ragged batch -- which every relay batch is --
+   then synthesizing ones re-enables attention to pad positions that were correctly
+   masked when the cache was written. Measured on transformers 4.53.3: greedy
+   continuations diverge from the correct-mask reference in the large majority of
+   randomized trials, with max logit differences around 0.53, comparable to a
+   typical top-1/top-2 gap. The `input_ids` filler above IS inert; the mask is not.
+   `past_mask` is therefore REQUIRED whenever the cache is non-empty. A caller
+   holding a genuinely unpadded cache passes explicit ones -- one line, and it
+   documents the claim instead of assuming it.
+
 CONTRACT: input_ids and attention_mask must have the same width on entry -- the
 prompt only, never pre-widened for the cache. Validated below, because a caller
 that pre-widens would otherwise be double-counted into silently wrong tokens.
@@ -588,6 +599,7 @@ def generate_text_batch(
     temperature: float = 0.6,
     top_p: float = 0.95,
     past_key_values=None,
+    past_mask: torch.Tensor | None = None,
 ):
     if attention_mask.shape[1] != input_ids.shape[1]:
         raise ValueError(
@@ -598,20 +610,33 @@ def generate_text_batch(
 
     past_len = int(past_key_values.get_seq_length()) if past_key_values is not None else 0
     if past_len:
+        batch = input_ids.shape[0]
+        if past_mask is None:
+            raise ValueError(
+                f"past_mask is required when past_key_values holds {past_len} "
+                "positions. Synthesizing all-ones would let queries attend to "
+                "pad positions the cache masked when it was written. Pass the "
+                "mask that was in force for the cached span; if it is genuinely "
+                "unpadded, pass explicit ones."
+            )
+        if tuple(past_mask.shape) != (batch, past_len):
+            raise ValueError(
+                f"past_mask shape {tuple(past_mask.shape)} != expected "
+                f"{(batch, past_len)} (batch, cached positions)."
+            )
         # The prepended ids are never embedded -- generate forwards only
         # input_ids[:, past_len:] -- so pad_token_id is inert filler that exists
         # purely to satisfy the length arithmetic. Verified on transformers
         # 4.53.3: true ids, all-PAD, and random garbage in the cached span all
         # produce byte-identical output, matching the no-cache reference.
-        batch = input_ids.shape[0]
         input_ids = torch.cat(
             [torch.full((batch, past_len), tokenizer.pad_token_id,
                         dtype=input_ids.dtype, device=input_ids.device), input_ids],
             dim=1,
         )
         attention_mask = torch.cat(
-            [torch.ones(batch, past_len, dtype=attention_mask.dtype,
-                        device=attention_mask.device), attention_mask],
+            [past_mask.to(dtype=attention_mask.dtype, device=attention_mask.device),
+             attention_mask],
             dim=1,
         )
 
@@ -661,8 +686,50 @@ def test_cached_generation_matches_uncached_reference(tiny_qwen3):
                                  max_new_tokens=4, greedy=True)
     got, _ = generate_text_batch(tiny_qwen3, tok, new, torch.ones_like(new),
                                  max_new_tokens=4, greedy=True,
-                                 past_key_values=copy.deepcopy(cache))
+                                 past_key_values=copy.deepcopy(cache),
+                                 past_mask=torch.ones_like(ctx))
     assert got == ref, (got, ref)
+
+
+def test_cached_generation_honours_a_padded_history(tiny_qwen3):
+    """THE decisive test. A cache built from a LEFT-PADDED row must keep those
+    pad positions masked. Synthesizing all-ones instead diverges from the
+    correct-mask reference -- measured max logit delta ~0.53."""
+    import copy
+    real = [93, 223, 18, 151, 112]
+    pad = 2
+    ctx = torch.tensor([[0] * pad + real])
+    true_mask = torch.tensor([[0] * pad + [1] * len(real)])
+    new = torch.tensor([[232, 26, 24]])
+    tok = _IdTok()
+    with torch.no_grad():
+        cache = tiny_qwen3(ctx, attention_mask=true_mask, use_cache=True).past_key_values
+
+    # Independent reference: whole sequence in one call, honouring the true mask.
+    full = torch.cat([ctx, new], dim=1)
+    full_mask = torch.cat([true_mask, torch.ones_like(new)], dim=1)
+    ref, _ = generate_text_batch(tiny_qwen3, tok, full, full_mask,
+                                 max_new_tokens=6, greedy=True)
+
+    got, _ = generate_text_batch(tiny_qwen3, tok, new, torch.ones_like(new),
+                                 max_new_tokens=6, greedy=True,
+                                 past_key_values=copy.deepcopy(cache),
+                                 past_mask=true_mask)
+    assert got == ref, (got, ref)
+
+
+def test_cache_without_past_mask_is_rejected(tiny_qwen3):
+    """Silently guessing all-ones is the defect; refusing is the fix."""
+    import copy
+    import pytest
+    ctx = torch.tensor([[5, 6, 7, 8, 9, 10]])
+    with torch.no_grad():
+        cache = tiny_qwen3(ctx, use_cache=True).past_key_values
+    new = torch.tensor([[11, 12, 13]])
+    with pytest.raises(ValueError, match="past_mask is required"):
+        generate_text_batch(tiny_qwen3, _IdTok(), new, torch.ones_like(new),
+                            max_new_tokens=2, greedy=True,
+                            past_key_values=copy.deepcopy(cache))
 
 
 def test_prewidened_mask_is_rejected(tiny_qwen3):
@@ -1662,7 +1729,7 @@ git commit -m "feat: scoring with both F1 variants and task loaders (D10)"
 - Consumes: `load_model`/`pad_batch` (Task 3), `generate_text_batch` (Task 3), `LatentProjector` (Task 5), `ROLES`/`latent_agent_message` (Task 6), `RunConfig` (Task 4).
 - Produces:
   - `past_length(past_kv) -> int` — reads **every** layer and returns the max, so a collapsed layer cannot hide (upstream reads layer 0 only).
-  - `generate_latent(model, projector, input_ids, attention_mask, latent_steps, past_key_values) -> tuple[cache, int]` returning the extended cache and the number of positions added.
+  - `generate_latent(model, projector, input_ids, attention_mask, latent_steps, past_key_values, past_mask=None) -> tuple[cache, Tensor, int]` returning the extended cache, the running attention mask covering the WHOLE cache, and the number of positions added. The mask must be threaded, never synthesized: the cache is built from left-padded ragged prompts, so its pad positions have to stay masked on every later hop.
   - `run_latentmas(model, tokenizer, cfg, items, trim_hook=None) -> tuple[list[str], list[dict]]` returning final texts and per-hop records. `trim_hook` has signature `(cache, hop_index: int, inherited_len: int) -> cache`; when `None`, nothing is trimmed. **This hook is the entire integration surface for Phase 5** — no KVComm code appears in this module.
   - Task 9 consumes `run_latentmas`; Task 17 supplies `trim_hook`.
 
@@ -1810,19 +1877,34 @@ def past_length(past_kv) -> int:
 
 
 def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
-                    past_key_values):
-    """Prefill the prompt, then roll `latent_steps` last-hidden-states back in."""
+                    past_key_values, past_mask=None):
+    """Prefill the prompt, then roll `latent_steps` last-hidden-states back in.
+
+    Returns (cache, running_mask, positions_added). `running_mask` spans the whole
+    cache and MUST be threaded into the next hop: the prompts are left-padded and
+    ragged, so those pad positions have to stay masked for the rest of the relay.
+    Synthesizing ones later re-enables attention to them and silently changes the
+    output -- measured max logit delta ~0.53 on the tiny fixture.
+    """
     before = past_length(past_key_values)
+    if before and past_mask is None:
+        raise ValueError(
+            f"past_mask is required when the cache already holds {before} "
+            "positions; the relay's earlier prompts were left-padded."
+        )
+    # The mask handed to the model must cover cache + this prompt.
+    mask = attention_mask if not before else torch.cat(
+        [past_mask.to(dtype=attention_mask.dtype, device=attention_mask.device),
+         attention_mask], dim=1)
     with torch.no_grad():
         out = model(
             input_ids=input_ids,
-            attention_mask=attention_mask,
+            attention_mask=mask,
             past_key_values=past_key_values,
             use_cache=True,
             output_hidden_states=True,
         )
         cache = out.past_key_values
-        mask = attention_mask
         for _ in range(latent_steps):
             hidden = out.hidden_states[-1][:, -1, :]
             embed = projector(hidden).unsqueeze(1)
@@ -1838,7 +1920,7 @@ def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
                 output_hidden_states=True,
             )
             cache = out.past_key_values
-    return cache, past_length(cache) - before
+    return cache, mask, past_length(cache) - before
 
 
 def _render(tokenizer, cfg, items, role):
@@ -1864,6 +1946,7 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
 
     roles = list(ROLES[: cfg.n_agents - 1]) + ["judger"] if cfg.n_agents > 1 else ["judger"]
     cache = None
+    run_mask = None          # spans the whole cache; threaded, never synthesized
     hops: list[dict] = []
     final_texts: list[str] = []
 
@@ -1883,15 +1966,22 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
                 max_new_tokens=cfg.max_new_tokens, greedy=cfg.greedy,
                 temperature=cfg.temperature, top_p=cfg.top_p,
                 past_key_values=cache,   # D2: never nulled
+                past_mask=run_mask,      # the relay's real mask, not ones
             )
             hops.append({"hop": hop_index, "role": role, "latent_steps": 0,
                          "positions_before": before, "positions_after": before})
             continue
 
-        cache, _ = generate_latent(model, projector, ids, mask, cfg.latent_steps, cache)
+        cache, run_mask, _ = generate_latent(
+            model, projector, ids, mask, cfg.latent_steps, cache, past_mask=run_mask
+        )
         after = past_length(cache)
         if trim_hook is not None:
             cache = trim_hook(cache, hop_index, before)
+            # A trim shortens the cache, so the running mask must be re-cut to
+            # match or the next hop's widths disagree. Trimming keeps a PREFIX of
+            # each layer, so the surviving mask is the matching prefix.
+            run_mask = run_mask[:, : past_length(cache)]
         hops.append({"hop": hop_index, "role": role, "latent_steps": cfg.latent_steps,
                      "positions_before": before, "positions_after": after,
                      "positions_after_trim": past_length(cache)})
