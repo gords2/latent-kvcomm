@@ -695,27 +695,36 @@ def test_cached_generation_honours_a_padded_history(tiny_qwen3):
     """THE decisive test. A cache built from a LEFT-PADDED row must keep those
     pad positions masked. Synthesizing all-ones instead diverges from the
     correct-mask reference -- measured max logit delta ~0.53."""
-    import copy
-    real = [93, 223, 18, 151, 112]
-    pad = 2
-    ctx = torch.tensor([[0] * pad + real])
-    true_mask = torch.tensor([[0] * pad + [1] * len(real)])
-    new = torch.tensor([[232, 26, 24]])
-    tok = _IdTok()
+    prefix_ids = torch.tensor([[0, 0, 11, 12, 13, 14, 15]], dtype=torch.long)
+    prefix_mask = torch.tensor([[0, 0, 1, 1, 1, 1, 1]], dtype=torch.long)
+    prompt = torch.tensor([[20, 21, 22]], dtype=torch.long)
+
+    full_ids = torch.cat([prefix_ids, prompt], dim=1)
+    full_mask = torch.cat([prefix_mask, torch.ones_like(prompt)], dim=1)
     with torch.no_grad():
-        cache = tiny_qwen3(ctx, attention_mask=true_mask, use_cache=True).past_key_values
+        reference = _greedy(tiny_qwen3, full_ids, full_mask, n=6)
+    reference_continuation = reference[0, full_ids.shape[1]:]
 
-    # Independent reference: whole sequence in one call, honouring the true mask.
-    full = torch.cat([ctx, new], dim=1)
-    full_mask = torch.cat([true_mask, torch.ones_like(new)], dim=1)
-    ref, _ = generate_text_batch(tiny_qwen3, tok, full, full_mask,
-                                 max_new_tokens=6, greedy=True)
+    # Prime the cache with the same left-pad position convention generate() uses
+    # internally. A plain forward() defaults position_ids to a bare arange() and
+    # ignores the mask, which would desync the comparison for a reason unrelated
+    # to the fix under test. This step is easy to omit and the resulting failure
+    # looks exactly like a real regression.
+    position_ids = prefix_mask.long().cumsum(-1) - 1
+    position_ids.masked_fill_(prefix_mask == 0, 1)
+    with torch.no_grad():
+        cache = tiny_qwen3(prefix_ids, attention_mask=prefix_mask,
+                           position_ids=position_ids, use_cache=True).past_key_values
 
-    got, _ = generate_text_batch(tiny_qwen3, tok, new, torch.ones_like(new),
-                                 max_new_tokens=6, greedy=True,
-                                 past_key_values=copy.deepcopy(cache),
-                                 past_mask=true_mask)
-    assert got == ref, (got, ref)
+    _, seqs = generate_text_batch(
+        tiny_qwen3, _IdTok(), prompt, torch.ones_like(prompt),
+        max_new_tokens=6, greedy=True,
+        past_key_values=copy.deepcopy(cache), past_mask=prefix_mask,
+    )
+    assert torch.equal(seqs[0, -6:], reference_continuation), (
+        "cached generation diverged from the uncached reference -- "
+        "past_mask was not honoured correctly"
+    )
 
 
 def test_cache_without_past_mask_is_rejected(tiny_qwen3):
@@ -752,9 +761,29 @@ def test_no_cache_path_is_unaffected(tiny_qwen3):
     assert texts[0].split() == [str(int(x)) for x in seqs[0, 3:]]
 ```
 
+One more test is required, and it is the one D1 and D12 both argue for — every
+cached-path test above is single-row, yet both defects were specifically
+ragged-multi-row bugs:
+
+```python
+def test_cached_generation_matches_per_row_references_in_a_ragged_batch(tiny_qwen3):
+    """Batch invariance across the cache boundary. Rows whose real prefixes and
+    real prompts differ in length, left-padded to common widths, must each
+    reproduce the answer they get alone. Tasks 8/14/18 run batches of 8-16, so a
+    batch-dimension error here would corrupt most rows of most batches -- exactly
+    the D1 failure mode, one layer deeper."""
+```
+
+Build it so each row's oracle is that row run **alone, unpadded, with no cache** —
+a per-row reference cannot be contaminated by the batching or the widening under
+test. Prime the cache with the same `position_ids` convention as above. Prove the
+test is not vacuous by injecting a row-0-mask-broadcast error once and confirming
+it fails while the single-row cached tests still pass.
+
 `_IdTok` is the identity-decoding stub already used by
 `test_generate_text_batch_returns_only_the_continuation`; lift it to module scope
-so all four tests share one definition.
+so every test shares one definition. `copy` and `pytest` are imported at module
+scope rather than inside each test.
 
 - [ ] **Step 4: Run test to verify it passes**
 
