@@ -2363,7 +2363,12 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings) ->
         "accuracy": (correct / n) if n else 0.0,
         "mean_score": (sum(p["score"] for p in per_item) / n) if n else 0.0,
         "per_item": per_item,
-        "hop_records": hops,
+        # Named for what it is. Hop metadata is captured from the FIRST batch
+        # only -- cache lengths differ per batch because prompts differ in
+        # length, so this is one representative relay, not a whole-run summary.
+        # Anything that needs a run-level figure must aggregate across batches
+        # rather than reading a single entry out of here.
+        "hop_records_first_batch": hops,
         "total_sec": timings["total_sec"],
         "sec_per_item": (timings["total_sec"] / n) if n else 0.0,
     }
@@ -2408,7 +2413,7 @@ def main(argv=None) -> int:
         with open(cfg.out_json, "w") as fh:
             fh.write(payload)
     print(json.dumps({k: v for k, v in record.items()
-                      if k not in ("per_item", "hop_records")}, indent=2))
+                      if k not in ("per_item", "hop_records_first_batch")}, indent=2))
     return 0
 
 
@@ -4248,7 +4253,11 @@ class PeakMemory:
         return False
 ```
 
-In `lkv/run.py`, wrap the batch loop in `Timer` and `PeakMemory(cfg.device)`, and add `peak_mem_bytes`, plus `cache_bytes_at_final_hop` and `attention_positions_at_final_hop` read from the last `hop_records` entry, to the record.
+In `lkv/run.py`, wrap the batch loop in `Timer` and `PeakMemory(cfg.device)` and add `peak_mem_bytes` to the record.
+
+For the cache-cost figures, **aggregate across every batch — do not read a single hop entry.** `hop_records_first_batch` is one representative relay, kept for inspection; cache lengths differ between batches because prompt lengths differ, so a single entry is not a run-level number. Accumulate `cache_bytes(cache)` and `attention_positions(cache)` at each batch's final hop, then record the means as `cache_bytes_at_final_hop_mean` and `attention_positions_at_final_hop_mean`, alongside the batch count they were averaged over. Task 20's analysis script reads those mean fields.
+
+The distinction matters for the headline claim: a per-batch mean is what "how much was actually saved" means over a dataset, whereas one batch's figure would silently be whichever batch happened to run first.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -4354,15 +4363,15 @@ header = (f"{'condition':34} {'acc':>7} {'d_acc':>7} {'layer_ret':>9} "
 print(header)
 print("-" * len(header))
 
-base_bytes = full.get("cache_bytes_at_final_hop") or 0
-base_attn = full.get("attention_positions_at_final_hop") or 0
+base_bytes = full.get("cache_bytes_at_final_hop_mean") or 0
+base_attn = full.get("attention_positions_at_final_hop_mean") or 0
 
 for name, d in runs.items():
     same_slice = [x["i"] for x in d["per_item"]] == [x["i"] for x in full["per_item"]]
     p = mcnemar([x["correct"] for x in d["per_item"]],
                 [x["correct"] for x in full["per_item"]])["p_exact"] if same_slice else float("nan")
-    b = d.get("cache_bytes_at_final_hop") or 0
-    a = d.get("attention_positions_at_final_hop") or 0
+    b = d.get("cache_bytes_at_final_hop_mean") or 0
+    a = d.get("attention_positions_at_final_hop_mean") or 0
     print(f"{name:34} {d['accuracy']:7.4f} {d['accuracy'] - full['accuracy']:+7.4f} "
           f"{d.get('layer_retention', 1.0):9.4f} "
           f"{(b / base_bytes if base_bytes else 1.0):9.4f} "
