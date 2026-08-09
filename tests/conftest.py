@@ -75,12 +75,14 @@ def _capture_model_state(tiny_qwen3, tiny_llama):
     qwen3_state = {}
     llama_state = {}
 
-    # Store the underlying function objects of forward methods
+    # Store the underlying function objects of forward methods.
+    # Normalize both bound methods and plain functions: bound methods have __func__,
+    # but plain functions (or closures assigned to an instance) do not.
     for i, layer in enumerate(tiny_qwen3.model.layers):
-        qwen3_state[i] = layer.self_attn.forward.__func__
+        qwen3_state[i] = getattr(layer.self_attn.forward, "__func__", layer.self_attn.forward)
 
     for i, layer in enumerate(tiny_llama.model.layers):
-        llama_state[i] = layer.self_attn.forward.__func__
+        llama_state[i] = getattr(layer.self_attn.forward, "__func__", layer.self_attn.forward)
 
     return {
         "tiny_qwen3": {"model": tiny_qwen3, "forward_funcs": qwen3_state},
@@ -128,8 +130,9 @@ def _guard_model_state(_capture_model_state):
                     f"Tests must remove attached attributes in finally blocks."
                 )
 
-            # Check forward method wasn't replaced
-            current_func = layer.self_attn.forward.__func__
+            # Check forward method wasn't replaced.
+            # Normalize both bound methods and plain functions (plain functions don't have __func__).
+            current_func = getattr(layer.self_attn.forward, "__func__", layer.self_attn.forward)
             original_func = forward_funcs[i]
             if current_func is not original_func:
                 raise AssertionError(
