@@ -52,3 +52,43 @@ def test_defaults_are_paper_defaults():
     assert cfg.realign is False        # store_true upstream
     assert cfg.renorm_latent is True   # D4: upstream applies it unconditionally
     assert isinstance(cfg, RunConfig)
+
+
+def test_max_new_tokens_resolves_per_task_when_unspecified():
+    """GPU accuracy gates depend on per-task budgets; wrong budget -> silent accuracy drop."""
+    # countries task defaults to 5
+    cfg_countries = parse_args(["--system", "kvcomm", "--task", "countries",
+                                 "--model_name", "meta-llama/Llama-3.1-8B-Instruct",
+                                 "--top_layers", "0.3"])
+    assert cfg_countries.max_new_tokens == 5
+
+    # gsm8k task defaults to 2048
+    cfg_gsm8k = parse_args(["--system", "latentmas", "--task", "gsm8k",
+                             "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40"])
+    assert cfg_gsm8k.max_new_tokens == 2048
+
+
+def test_explicit_max_new_tokens_passes_through_unchanged():
+    """An explicit --max_new_tokens should not be overwritten by task defaults."""
+    cfg = parse_args(["--system", "latentmas", "--task", "gsm8k",
+                      "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40",
+                      "--max_new_tokens", "1024"])
+    assert cfg.max_new_tokens == 1024
+
+
+def test_no_renorm_latent_flag_disables_renormalization():
+    """The flag that turns off latent renormalization must be exercisable."""
+    cfg = parse_args(["--system", "kvcomm", "--task", "countries",
+                      "--model_name", "meta-llama/Llama-3.1-8B-Instruct",
+                      "--top_layers", "0.3", "--no_renorm_latent"])
+    assert cfg.renorm_latent is False
+
+
+def test_realign_and_no_renorm_latent_compose():
+    """The four combinations of realign and renorm_latent are the ablation grid Task 5 sweeps."""
+    cfg = parse_args(["--system", "kvcomm", "--task", "countries",
+                      "--model_name", "meta-llama/Llama-3.1-8B-Instruct",
+                      "--top_layers", "0.3",
+                      "--realign", "--no_renorm_latent"])
+    assert cfg.realign is True
+    assert cfg.renorm_latent is False
