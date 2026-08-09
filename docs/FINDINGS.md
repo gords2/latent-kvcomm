@@ -55,6 +55,41 @@ Method: prefill 12 context tokens, apply KVComm's `prepare_key_cache` semantics 
 
 The plan's `lkv/kvcomm/trim.py:build_per_layer_masks` and `forward_with_ragged_cache` (Task 12) address this. Task 15 step 3 item 3 compares the two paths on real weights.
 
+### D9 — the per-layer-mask fix is exactly causal. CONFIRMED.
+
+Task 12 implemented `build_per_layer_masks` and `forward_with_ragged_cache`
+(`lkv/kvcomm/trim.py`), which give every decoder layer its own additive mask
+sized to that layer's own key length, and its own `position_embeddings`
+computed from that layer's own cache length, instead of the one shared
+mask/position pair the stock `Qwen3Model.forward` loop builds from layer 0's
+length (`transformers/models/qwen3/modeling_qwen3.py:450-468` at 4.53.3).
+
+Re-running the D8 measurement (`tests/test_ragged_cache.py`) through the fixed
+path instead of the stock path, on the same `[12, 1, 12, 1]` cache:
+
+| path | first-position logit drift |
+|---|---|
+| stock (D8, re-measured in-suite) | `1.5e-01`–`2.1e-01`, always > `1e-3` |
+| `forward_with_ragged_cache` | `0.000e+00`, exactly, every run |
+
+The stock-path number is not a single fixed value: `tests/test_ragged_cache.py`
+seeds the model once per session but draws the receiver-token ids with an
+unseeded `torch.randint`, so the exact drift depends on how much of the global
+RNG stream earlier tests in the same process consumed. Isolated, it reproduces
+at `1.537e-01`; inside the full two-file run it was `2.075e-01`. The magnitude
+moves, the qualitative result does not: every observed run is non-causal by at
+least two orders of magnitude above the `1e-3` threshold, and
+`forward_with_ragged_cache`'s drift is `0.0` to the bit, every run, because the
+receiver block's mask column for a future token is a literal `-inf`, not an
+approximation. `test_stock_path_is_NOT_causal_when_trimmed` pins the defect
+range rather than a single digit for exactly this reason.
+
+**Consequence.** D8's open question #2 is resolved for Phase 4: KVComm
+reproduction work here must run through `forward_with_ragged_cache`, not the
+stock forward, whenever a trimmed cache is used with more than one distinct
+cache length. The two-path comparison upstream's `shift_back` flag gestures at
+is now a real, measured gap (D8 vs. D9's tables above), not a hypothesis.
+
 ---
 
 ## Not yet measured
