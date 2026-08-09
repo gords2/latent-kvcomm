@@ -555,10 +555,23 @@ def pad_batch(tokenizer, texts: list[str]):
 ```python
 """Batched text and latent generation.
 
-The output slice is taken at the PADDED prompt width, not each row's unpadded
-length. With left padding those differ, and using the unpadded length -- as
-upstream does at stock-latentmas/models.py:230,260-267 -- lands inside the
-prompt for every row that was padded.
+Two slicing hazards, both of which upstream gets wrong:
+
+1. The output slice is taken at the PADDED prompt width, not each row's unpadded
+   length. With left padding those differ, and using the unpadded length -- as
+   upstream does at stock-latentmas/models.py:230,260-267 -- lands inside the
+   prompt for every row that was padded.
+
+2. `generate()` will not accept a prompt-only `input_ids` alongside a cache. It
+   computes `cache_position = arange(input_ids.shape[1])[past_len:]` and forwards
+   only `input_ids[:, past_len:]`, so a prompt-only tensor underflows that slice
+   and raises IndexError. This function therefore owns the widening: callers
+   always pass their prompt alone, for BOTH input_ids and attention_mask, and it
+   prepends the cached span itself.
+
+CONTRACT: input_ids and attention_mask must have the same width on entry -- the
+prompt only, never pre-widened for the cache. Validated below, because a caller
+that pre-widens would otherwise be double-counted into silently wrong tokens.
 """
 from __future__ import annotations
 
@@ -576,6 +589,32 @@ def generate_text_batch(
     top_p: float = 0.95,
     past_key_values=None,
 ):
+    if attention_mask.shape[1] != input_ids.shape[1]:
+        raise ValueError(
+            f"pass the prompt alone: input_ids width {input_ids.shape[1]} != "
+            f"attention_mask width {attention_mask.shape[1]}. This function "
+            "prepends the cached span itself; do not pre-widen either tensor."
+        )
+
+    past_len = int(past_key_values.get_seq_length()) if past_key_values is not None else 0
+    if past_len:
+        # The prepended ids are never embedded -- generate forwards only
+        # input_ids[:, past_len:] -- so pad_token_id is inert filler that exists
+        # purely to satisfy the length arithmetic. Verified on transformers
+        # 4.53.3: true ids, all-PAD, and random garbage in the cached span all
+        # produce byte-identical output, matching the no-cache reference.
+        batch = input_ids.shape[0]
+        input_ids = torch.cat(
+            [torch.full((batch, past_len), tokenizer.pad_token_id,
+                        dtype=input_ids.dtype, device=input_ids.device), input_ids],
+            dim=1,
+        )
+        attention_mask = torch.cat(
+            [torch.ones(batch, past_len, dtype=attention_mask.dtype,
+                        device=attention_mask.device), attention_mask],
+            dim=1,
+        )
+
     kwargs = dict(
         input_ids=input_ids,
         attention_mask=attention_mask,
@@ -595,7 +634,8 @@ def generate_text_batch(
         out = model.generate(**kwargs)
 
     sequences = out.sequences
-    # Left padding means every row's prompt ends at the same column.
+    # Left padding means every row's prompt ends at the same column; after the
+    # widening above, that column accounts for the cached span too.
     prompt_width = int(input_ids.shape[1])
     texts = [
         tokenizer.decode(sequences[i, prompt_width:], skip_special_tokens=True).strip()
@@ -603,6 +643,51 @@ def generate_text_batch(
     ]
     return texts, sequences
 ```
+
+Three more tests belong in `tests/test_padding.py` for the cache path:
+
+```python
+def test_cached_generation_matches_uncached_reference(tiny_qwen3):
+    """A cache plus the remaining prompt must equal running the whole thing."""
+    import copy
+    ctx = torch.tensor([[5, 6, 7, 8, 9, 10]])
+    new = torch.tensor([[11, 12, 13]])
+    tok = _IdTok()
+    with torch.no_grad():
+        cache = tiny_qwen3(ctx, use_cache=True).past_key_values
+
+    full = torch.cat([ctx, new], dim=1)
+    ref, _ = generate_text_batch(tiny_qwen3, tok, full, torch.ones_like(full),
+                                 max_new_tokens=4, greedy=True)
+    got, _ = generate_text_batch(tiny_qwen3, tok, new, torch.ones_like(new),
+                                 max_new_tokens=4, greedy=True,
+                                 past_key_values=copy.deepcopy(cache))
+    assert got == ref, (got, ref)
+
+
+def test_prewidened_mask_is_rejected(tiny_qwen3):
+    """The contract is prompt-only; a pre-widened mask must raise, not silently
+    produce wrong tokens."""
+    import pytest
+    new = torch.tensor([[11, 12, 13]])
+    with pytest.raises(ValueError, match="prompt alone"):
+        generate_text_batch(tiny_qwen3, _IdTok(), new,
+                            torch.ones(1, 9, dtype=torch.long),
+                            max_new_tokens=2, greedy=True)
+
+
+def test_no_cache_path_is_unaffected(tiny_qwen3):
+    ids = torch.tensor([[5, 6, 7]])
+    texts, seqs = generate_text_batch(tiny_qwen3, _IdTok(), ids,
+                                      torch.ones_like(ids), max_new_tokens=4,
+                                      greedy=True)
+    assert seqs.shape[1] == 3 + 4
+    assert texts[0].split() == [str(int(x)) for x in seqs[0, 3:]]
+```
+
+`_IdTok` is the identity-decoding stub already used by
+`test_generate_text_batch_returns_only_the_continuation`; lift it to module scope
+so all four tests share one definition.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -1789,12 +1874,12 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
         before = past_length(cache)
 
         if role == "judger":
-            full_mask = mask
-            if cache is not None:
-                pad = torch.ones(mask.shape[0], before, dtype=mask.dtype, device=mask.device)
-                full_mask = torch.cat([pad, mask], dim=1)
+            # Pass the judger prompt ALONE. generate_text_batch owns widening for
+            # the cached span -- see its contract. Hand-rolling the mask here is
+            # what the plan originally specified, and it raised IndexError,
+            # because generate also needs input_ids to span the cache.
             final_texts, _ = generate_text_batch(
-                model, tokenizer, ids, full_mask,
+                model, tokenizer, ids, mask,
                 max_new_tokens=cfg.max_new_tokens, greedy=cfg.greedy,
                 temperature=cfg.temperature, top_p=cfg.top_p,
                 past_key_values=cache,   # D2: never nulled
@@ -1814,7 +1899,10 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
     return final_texts, hops
 ```
 
-Note on the judger mask: the cache occupies `before` positions that the judger's own `attention_mask` does not cover, so a block of ones is prepended. This is the one place where a mask must be extended by hand; getting it wrong makes the judger blind to the relay. `tests/test_ragged_cache.py` (Task 12) covers the trimmed variant.
+Note on the judger mask: `generate_text_batch` prepends the cached span to both
+tensors itself, so the loop passes the judger prompt unchanged. The earlier
+hand-rolled concatenation here was removed after it was shown to raise
+IndexError -- `generate` needs `input_ids` to span the cache, not just the mask.
 
 - [ ] **Step 4: Run test to verify it passes**
 
