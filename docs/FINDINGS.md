@@ -99,3 +99,31 @@ relay threads one running mask across all four agents; a trim re-cuts it to the
 surviving prefix. Upstream LatentMAS synthesizes the prepended block as ones
 (`stock-latentmas/models.py:374-382`), so it has this defect too, compounding
 with D1.
+
+### D13 / D14 — two harness-fidelity gaps found while reviewing Task 7
+
+Neither is an upstream *defect* — both are places where our reimplementation
+diverged from what KVComm actually measures. Caught by review before any GPU
+time was spent. Verified against the upstream clone, not inferred.
+
+**D13 — the HotpotQA sender context is supporting-fact sentences only.**
+Upstream's `construct_support` (`stock-kvcomm/dataloader/hotpotqa.py:4-14`) walks
+`supporting_facts` and pulls exactly those sentences out of the matching context
+paragraphs, then joins with newlines to form `prompt_A` (`:34-35`). Our first
+implementation joined **all ten distractor paragraphs**. That context is roughly
+an order of magnitude larger and mostly irrelevant, so every KVComm score would
+have come out low — and it would have looked like the method failing rather than
+the harness being wrong. Fixed in the plan and in `lkv/data/hotpotqa.py`.
+
+**D14 — KVComm's F1 lemmatizes both sides before comparing.**
+`stock-kvcomm/utils/f1.py:12-13` applies `lemmatize_text(normalize_answer(x))` to
+reference and candidate, using nltk's WordNetLemmatizer with a per-token POS tag
+(`utils/metric_tools.py:188-210`). Our F1 normalized but did not lemmatize, which
+depresses F1 systematically across every condition — enough to make the K1/K2
+gates miss for a reason unrelated to KV transfer. Added `lkv/lemma.py` and
+`nltk`, and it raises rather than silently degrading to unlemmatized text.
+
+Also confirmed harmless, so recorded to avoid re-litigation: upstream's `precision`
+and `recall` are transposed relative to the usual convention (`utils/f1.py:18-27`
+divides by the reference and candidate set sizes respectively). F1 is symmetric in
+the two, so the resulting value is identical. No change needed.

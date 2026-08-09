@@ -1393,8 +1393,56 @@ git commit -m "feat: role and KVComm prompts; None means unlimited context (D6)"
 The metric ambiguity must be implemented as *two* functions, not resolved by guesswork. KVComm's code computes `f1_match(...) -> bool` returning `max(f1) > 0.5`, so its reported score is the **fraction of examples above threshold** (`stock-kvcomm/utils/f1.py:65`, `base_evaluator.py:36-48`). The paper §4.1 says plain "F1 score". Both are computed and both are written to the output JSON; Task 15's gate decides which reproduces the published tables. Evidence favouring the thresholded reading: Table 6 Tipsheets shows KVComm(0.3)=0.93 exceeding Skyline=0.92, which is easier under a threshold.
 
 **Files:**
-- Create: `lkv/scoring.py`, `lkv/data/__init__.py` (replace stub), `lkv/data/gsm8k.py`, `lkv/data/mbppplus.py`, `lkv/data/hotpotqa.py`, `lkv/data/countries.py`
+- Create: `lkv/scoring.py`, `lkv/lemma.py`, `lkv/data/__init__.py` (replace stub), `lkv/data/gsm8k.py`, `lkv/data/mbppplus.py`, `lkv/data/hotpotqa.py`, `lkv/data/countries.py`
+- Modify: `requirements.txt` (add `nltk>=3.8`)
 - Test: `tests/test_scoring.py`
+
+`lkv/lemma.py` isolates the only nltk dependency in the codebase, so the corpora
+download happens in one place and the failure mode is one clear exception:
+
+```python
+"""WordNet lemmatization, matching stock-kvcomm/utils/metric_tools.py:188-210.
+
+Isolated in its own module because it is the codebase's only nltk dependency and
+it needs corpora that must be present before the first call. It raises rather
+than degrading to unlemmatized text: a silent fallback would change the metric
+while still reporting it as KVComm's metric.
+"""
+from __future__ import annotations
+
+import functools
+
+_REQUIRED = ("punkt", "punkt_tab", "wordnet", "omw-1.4",
+             "averaged_perceptron_tagger", "averaged_perceptron_tagger_eng")
+
+
+@functools.lru_cache(maxsize=1)
+def _setup():
+    import nltk
+    from nltk.stem import WordNetLemmatizer
+    for pkg in _REQUIRED:
+        nltk.download(pkg, quiet=True)
+    return nltk, WordNetLemmatizer()
+
+
+@functools.lru_cache(maxsize=100_000)
+def _lemma_one(word: str) -> str:
+    nltk, lemmatizer = _setup()
+    from nltk.corpus import wordnet
+    tag = nltk.pos_tag([word])[0][1][0].upper()
+    pos = {"J": wordnet.ADJ, "N": wordnet.NOUN,
+           "V": wordnet.VERB, "R": wordnet.ADV}.get(tag, wordnet.NOUN)
+    return lemmatizer.lemmatize(word, pos)
+
+
+def lemmatize_text(text: str) -> str:
+    nltk, _ = _setup()
+    from nltk.tokenize import word_tokenize
+    return " ".join(_lemma_one(w) for w in word_tokenize(text))
+```
+
+The per-word `lru_cache` matters: upstream calls `nltk.pos_tag` once per token,
+which dominates scoring time on a 500-item run.
 
 **Interfaces:**
 - Consumes: nothing.
@@ -1568,12 +1616,42 @@ _PUNCT = re.compile(r"[^a-z0-9 ]")
 _ARTICLES = {"a", "an", "the"}
 
 
+def normalize_answer(text: str) -> str:
+    """Lowercase, strip punctuation, drop articles, collapse whitespace.
+
+    Mirrors stock-kvcomm/utils/metric_tools.py:43-59 (`normalize_answer`, which
+    then calls `fix_answer` at :27-41).
+    """
+    cleaned = _PUNCT.sub(" ", str(text).lower())
+    return " ".join(t for t in cleaned.split() if t not in _ARTICLES)
+
+
+def _lemmatize(text: str) -> str:
+    """WordNet lemmatization with POS tagging, as upstream does.
+
+    stock-kvcomm/utils/f1.py:12-13 applies `lemmatize_text(normalize_answer(x))`
+    to BOTH sides before comparing, using nltk's WordNetLemmatizer with a POS tag
+    per token (metric_tools.py:188-210). Skipping it lowers F1 systematically for
+    every condition, which would make the K1/K2 gates miss for a reason that has
+    nothing to do with KV transfer.
+
+    If the nltk corpora are unavailable this raises rather than silently
+    returning unlemmatized text -- a quiet fallback would change the metric
+    without changing the reported metric name.
+    """
+    from lkv import lemma
+    return lemma.lemmatize_text(text)
+
+
 def _tokens(text: str) -> list[str]:
-    cleaned = _PUNCT.sub(" ", text.lower())
-    return [t for t in cleaned.split() if t and t not in _ARTICLES]
+    return _lemmatize(normalize_answer(text)).split()
 
 
 def f1_score(reference: str, candidate: str) -> float:
+    """Word-set F1. Upstream's `precision`/`recall` are transposed relative to
+    the usual convention (stock-kvcomm/utils/f1.py:18-27 divides by the
+    reference and candidate sizes respectively), but F1 is symmetric in the two,
+    so the value is identical either way."""
     ref, cand = _tokens(reference), _tokens(candidate)
     if not ref or not cand:
         return float(ref == cand)
@@ -1658,19 +1736,44 @@ def load(split: str = "test"):
 
 `lkv/data/hotpotqa.py`:
 ```python
+"""HotpotQA, matching KVComm's own context construction.
+
+CRITICAL: the sender's context is ONLY the supporting-fact sentences, not the
+whole distractor paragraph set. Upstream builds it with `construct_support`
+(stock-kvcomm/dataloader/hotpotqa.py:4-14): for each (title, sent_id) in
+`supporting_facts`, pull that one sentence out of the matching context
+paragraph, then join with newlines (`:34-35`, `prompt_A`). Handing the model all
+ten paragraphs instead would make the context roughly an order of magnitude
+larger and mostly distractors, which would depress every KVComm score in a way
+that looks like the method failing rather than the harness being wrong.
+"""
 from datasets import load_dataset
 
 INSTRUCTION = "Answer the question using the given context."
+
+
+def construct_support(row) -> list[str]:
+    """The supporting-fact sentences only, in supporting_facts order."""
+    facts = row["supporting_facts"]
+    ctx = row["context"]
+    out = []
+    for title, sent_id in zip(facts["title"], facts["sent_id"]):
+        for ctx_title, sentences in zip(ctx["title"], ctx["sentences"]):
+            if ctx_title == title:
+                if 0 <= sent_id < len(sentences):
+                    out.append(sentences[sent_id])
+                # Upstream prints a warning and drops it; a missing sentence is
+                # a dataset artifact, not something to fail the run over.
+    return out
 
 
 def load(split: str = "validation"):
     ds = load_dataset("hotpotqa/hotpot_qa", "distractor", split=split)
     items = []
     for row in ds:
-        paras = ["".join(s) for s in row["context"]["sentences"]]
         items.append({
             "instruction": INSTRUCTION,
-            "context": "\n".join(paras),
+            "context": "\n".join(construct_support(row)),
             "question": row["question"],
             "gold": row["answer"],
         })
