@@ -66,12 +66,42 @@ _PUNCT = re.compile(r"[^a-z0-9 ]")
 _ARTICLES = {"a", "an", "the"}
 
 
+def normalize_answer(text: str) -> str:
+    """Lowercase, strip punctuation, drop articles, collapse whitespace.
+
+    Mirrors stock-kvcomm/utils/metric_tools.py:43-59 (`normalize_answer`, which
+    then calls `fix_answer` at :27-41).
+    """
+    cleaned = _PUNCT.sub(" ", str(text).lower())
+    return " ".join(t for t in cleaned.split() if t not in _ARTICLES)
+
+
+def _lemmatize(text: str) -> str:
+    """WordNet lemmatization with POS tagging, as upstream does.
+
+    stock-kvcomm/utils/f1.py:12-13 applies `lemmatize_text(normalize_answer(x))`
+    to BOTH sides before comparing, using nltk's WordNetLemmatizer with a POS tag
+    per token (metric_tools.py:188-210). Skipping it lowers F1 systematically for
+    every condition, which would make the K1/K2 gates miss for a reason that has
+    nothing to do with KV transfer.
+
+    If the nltk corpora are unavailable this raises rather than silently
+    returning unlemmatized text -- a quiet fallback would change the metric
+    without changing the reported metric name.
+    """
+    from lkv import lemma
+    return lemma.lemmatize_text(text)
+
+
 def _tokens(text: str) -> list[str]:
-    cleaned = _PUNCT.sub(" ", text.lower())
-    return [t for t in cleaned.split() if t and t not in _ARTICLES]
+    return _lemmatize(normalize_answer(text)).split()
 
 
 def f1_score(reference: str, candidate: str) -> float:
+    """Word-set F1. Upstream's `precision`/`recall` are transposed relative to
+    the usual convention (stock-kvcomm/utils/f1.py:18-27 divides by the
+    reference and candidate sizes respectively), but F1 is symmetric in the two,
+    so the value is identical either way."""
     ref, cand = _tokens(reference), _tokens(candidate)
     if not ref or not cand:
         return float(ref == cand)

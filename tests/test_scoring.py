@@ -77,3 +77,26 @@ def test_score_item_mbppplus_executes_gold_tests():
 def test_score_item_hotpotqa_returns_both_metrics():
     correct, score = score_item("hotpotqa", "the red car", {"gold": "red car"})
     assert isinstance(correct, bool) and 0.0 <= score <= 1.0
+
+
+def test_f1_score_lemmatizes_both_sides():
+    """Regenerated brief finding #2: stock-kvcomm/utils/f1.py:12-13 lemmatizes
+    both reference and candidate before comparing (metric_tools.py:188-210). A
+    plural/verb-inflection-only mismatch has zero overlap in raw tokens but
+    should be a perfect match once both sides are lemmatized to their lemma."""
+    reference, candidate = "the dog runs", "dogs running"
+    raw_ref = set(reference.lower().split()) - {"the"}
+    raw_cand = set(candidate.lower().split())
+    assert not (raw_ref & raw_cand), "test setup: raw tokens must not overlap"
+    assert f1_score(reference, candidate) == 1.0
+
+
+def test_f1_score_is_symmetric():
+    """utils/f1.py:18-27 divides precision/recall by the reference and
+    candidate set sizes respectively (transposed vs. the usual convention),
+    but F1 is the harmonic mean of the two, which is symmetric in P and R --
+    so f1_score(a, b) == f1_score(b, a) regardless. Do not 'fix' the
+    transposition; it is harmless and preserved on purpose."""
+    a, b = "the red car sped away", "a red truck stopped"
+    assert f1_score(a, b) == f1_score(b, a)
+    assert 0.0 < f1_score(a, b) < 1.0
