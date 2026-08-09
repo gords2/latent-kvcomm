@@ -1974,7 +1974,7 @@ def test_generate_latent_adds_prompt_plus_steps(tiny_qwen3):
     proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
     ids = torch.tensor([[3, 4, 5]])
     mask = torch.ones_like(ids)
-    cache, added = generate_latent(tiny_qwen3, proj, ids, mask, latent_steps=5,
+    cache, run_mask, added = generate_latent(tiny_qwen3, proj, ids, mask, latent_steps=5,
                                    past_key_values=None)
     assert added == 3 + 5
     assert past_length(cache) == 3 + 5
@@ -1983,7 +1983,7 @@ def test_generate_latent_adds_prompt_plus_steps(tiny_qwen3):
 def test_generate_latent_zero_steps_adds_only_the_prompt(tiny_qwen3):
     proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
     ids = torch.tensor([[3, 4, 5]])
-    cache, added = generate_latent(tiny_qwen3, proj, ids, torch.ones_like(ids),
+    cache, run_mask, added = generate_latent(tiny_qwen3, proj, ids, torch.ones_like(ids),
                                    latent_steps=0, past_key_values=None)
     assert added == 3
 
@@ -4039,23 +4039,26 @@ def calibrate_relay(model, tokenizer, cfg, items, hop_index: int = 0) -> dict:
         raise ValueError(f"hop_index {hop_index} exceeds {len(roles)} latent agents")
 
     for item in items[: cfg.calib_size]:
-        # Build the cache up to and including the agent at hop_index.
+        # Build the cache up to and including the agent at hop_index. The running
+        # mask must be threaded, exactly as in run_latentmas -- the prompts are
+        # left-padded, so an all-ones mask over the cached span would re-enable
+        # attention to pad positions and skew the importance scores this whole
+        # function exists to measure.
         cache = None
+        run_mask = None
         for role in roles[: hop_index + 1]:
             ids, mask = _render(tokenizer, cfg, item, role)
-            cache, _ = generate_latent(
+            cache, run_mask, _ = generate_latent(
                 model, projector, ids.to(model.device), mask.to(model.device),
-                cfg.latent_steps, cache,
+                cfg.latent_steps, cache, past_mask=run_mask,
             )
 
         # Trace the NEXT role's prefill over that cache.
         next_role = roles[hop_index + 1] if hop_index + 1 < len(roles) else "judger"
         ids, mask = _render(tokenizer, cfg, item, next_role)
         ids, mask = ids.to(model.device), mask.to(model.device)
-        past = past_length(cache)
-        full_mask = torch.cat(
-            [torch.ones(1, past, dtype=mask.dtype, device=mask.device), mask], dim=1
-        )
+        full_mask = torch.cat([run_mask.to(dtype=mask.dtype, device=mask.device), mask],
+                              dim=1)
         saved = install_tracer(model)
         try:
             with torch.no_grad():
