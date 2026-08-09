@@ -12,6 +12,16 @@ Callers that pass `past_key_values` must pass the remaining prompt ALONE
 relay boundary underflows that slice (IndexError) unless `input_ids` is first
 widened to span the cached prefix too. This function owns that widening so
 every caller gets it once, correctly.
+
+Those same callers must also pass `past_mask`: the attention_mask the cache
+was ORIGINALLY built with. The cached span can itself be left-padded (every
+cache in this project comes from a batch tokenized by pad_batch), so the
+historical mask can contain real zeros for pad positions that were correctly
+excluded when the cache was written. Synthesizing all-ones for that span
+would flip those positions back to attendable, letting later queries attend
+to pad key/value vectors -- numerically real drift, not inert filler like
+the input_ids side (see below). There is no safe default here, so a missing
+`past_mask` is a hard error rather than a guess.
 """
 from __future__ import annotations
 
@@ -28,6 +38,7 @@ def generate_text_batch(
     temperature: float = 0.6,
     top_p: float = 0.95,
     past_key_values=None,
+    past_mask: torch.Tensor | None = None,
 ):
     if attention_mask.shape[1] != input_ids.shape[1]:
         raise ValueError(
@@ -39,6 +50,22 @@ def generate_text_batch(
 
     past_len = int(past_key_values.get_seq_length()) if past_key_values is not None else 0
     if past_len:
+        if past_mask is None:
+            raise ValueError(
+                "past_key_values has cached positions but past_mask is required "
+                "and was not given. The cached span can itself be left-padded "
+                "(pad_batch left-pads every batch), so synthesizing an all-ones "
+                "mask would let queries attend to pad positions the cache "
+                "correctly masked out when it was written. Pass the exact "
+                "attention_mask the cache was built with."
+            )
+        batch = input_ids.shape[0]
+        if tuple(past_mask.shape) != (batch, past_len):
+            raise ValueError(
+                f"past_mask has shape {tuple(past_mask.shape)}, expected "
+                f"{(batch, past_len)} (batch size x cached length)."
+            )
+
         # generate() only ever reads input_ids[:, past_len:] (see module
         # docstring): the first `past_len` columns are never embedded or
         # looked at, they exist purely so arange(input_ids.shape[1])[past_len:]
@@ -50,12 +77,9 @@ def generate_text_batch(
             (input_ids.shape[0], past_len), tokenizer.pad_token_id,
             dtype=input_ids.dtype, device=input_ids.device,
         )
-        # These columns represent real, already-cached content, not padding
-        # to be masked out -- so the mask prefix is 1s, not 0s.
-        mask_prefix = torch.ones(
-            (attention_mask.shape[0], past_len),
-            dtype=attention_mask.dtype, device=attention_mask.device,
-        )
+        # Unlike the ids filler above, the mask is NOT inert: it must be the
+        # cache's true historical mask, cast to match the caller's tensors.
+        mask_prefix = past_mask.to(dtype=attention_mask.dtype, device=attention_mask.device)
         input_ids = torch.cat([pad_prefix, input_ids], dim=1)
         attention_mask = torch.cat([mask_prefix, attention_mask], dim=1)
 

@@ -122,11 +122,76 @@ def test_cached_generation_matches_uncached_reference(tiny_qwen3):
     prompt_mask = torch.ones_like(prompt)
     texts, seqs = generate_text_batch(
         tiny_qwen3, _IdTok(), prompt, prompt_mask, max_new_tokens=4, greedy=True,
-        past_key_values=copy.deepcopy(cache),
+        past_key_values=copy.deepcopy(cache), past_mask=torch.ones_like(prefix),
     )
     cached_continuation = seqs[0, -4:]
 
     assert torch.equal(cached_continuation, reference_continuation)
+
+
+def test_cache_without_past_mask_is_rejected(tiny_qwen3):
+    """past_mask has no safe default -- a missing one must be a hard error,
+    not a silent all-ones guess (that guess is exactly what D-round-2 found
+    unsafe for a padded cached history)."""
+    prefix = torch.tensor([[5, 6, 7]], dtype=torch.long)
+    with torch.no_grad():
+        prefix_out = tiny_qwen3(prefix, use_cache=True)
+    cache = prefix_out.past_key_values
+
+    prompt = torch.tensor([[8, 9]], dtype=torch.long)
+    prompt_mask = torch.ones_like(prompt)
+
+    with pytest.raises(ValueError, match="past_mask is required"):
+        generate_text_batch(
+            tiny_qwen3, _IdTok(), prompt, prompt_mask, max_new_tokens=3, greedy=True,
+            past_key_values=cache,
+        )
+
+
+def test_cached_generation_honours_a_padded_history(tiny_qwen3):
+    """The cached span can itself be left-padded -- every cache in this
+    project comes from a pad_batch'd batch. Synthesizing an all-ones mask for
+    that span (instead of the cache's true historical mask) lets later
+    queries attend to pad positions that were correctly excluded when the
+    cache was written. This is the decisive check for that regression.
+    """
+    # 2 pad + 5 real prefix tokens (left-padded), then a 3-token prompt.
+    prefix_ids = torch.tensor([[0, 0, 11, 12, 13, 14, 15]], dtype=torch.long)
+    prefix_mask = torch.tensor([[0, 0, 1, 1, 1, 1, 1]], dtype=torch.long)
+    prompt = torch.tensor([[20, 21, 22]], dtype=torch.long)
+
+    full_ids = torch.cat([prefix_ids, prompt], dim=1)
+    full_mask = torch.cat([prefix_mask, torch.ones_like(prompt)], dim=1)
+
+    with torch.no_grad():
+        reference = _greedy(tiny_qwen3, full_ids, full_mask, n=6)
+    reference_continuation = reference[0, full_ids.shape[1]:]
+
+    # Prime the cache with the same left-pad position convention generate()
+    # uses internally (mask.cumsum(-1) - 1, masked_fill 1 at pad slots). A
+    # plain forward() call defaults position_ids to a bare arange() and
+    # ignores the mask entirely, which would desync the comparison for a
+    # reason unrelated to the fix under test.
+    position_ids = prefix_mask.long().cumsum(-1) - 1
+    position_ids.masked_fill_(prefix_mask == 0, 1)
+    with torch.no_grad():
+        prefix_out = tiny_qwen3(
+            prefix_ids, attention_mask=prefix_mask, position_ids=position_ids,
+            use_cache=True,
+        )
+    cache = prefix_out.past_key_values  # generate() mutates its cache argument
+
+    prompt_mask = torch.ones_like(prompt)
+    texts, seqs = generate_text_batch(
+        tiny_qwen3, _IdTok(), prompt, prompt_mask, max_new_tokens=6, greedy=True,
+        past_key_values=copy.deepcopy(cache), past_mask=prefix_mask,
+    )
+    cached_continuation = seqs[0, -6:]
+
+    assert torch.equal(cached_continuation, reference_continuation), (
+        "cached generation diverged from the uncached reference -- "
+        "past_mask was not honoured correctly"
+    )
 
 
 def test_pad_batch_is_left_padded():
