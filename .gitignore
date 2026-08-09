@@ -10,3 +10,4 @@ snapshots/
 wandb/
 .DS_Store
 *.log
+.superpowers/
