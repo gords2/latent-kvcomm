@@ -2376,29 +2376,43 @@ def test_ragged_cache_forward_does_not_crash(tiny_qwen3):
     assert out.logits.shape == (1, 4, tiny_qwen3.config.vocab_size)
 
 
-def test_measure_causality_in_a_trimmed_layer(tiny_qwen3, capsys):
-    """Directly measure whether a query can see a later query in a trimmed layer.
-
-    Method: run the same 4 receiver tokens twice against a trimmed cache,
-    changing ONLY the last token. If position 0's output changes, information
-    flowed backwards -- attention is not causal.
-    """
-    base_cache = _prefill(tiny_qwen3, 12)
-    q1 = torch.tensor([[11, 12, 13, 14]])
-    q2 = torch.tensor([[11, 12, 13, 99]])
-    mask = torch.ones(1, 12 + 4, dtype=torch.long)
-
+def _causality_drift(model, cache_builder):
+    """Run 4 receiver tokens twice, changing ONLY the last one. If the FIRST
+    position's logits move, information flowed backwards."""
     outs = []
-    for q in (q1, q2):
-        cache = prepare_key_cache(base_cache, layers_list=[2])
+    for q in (torch.tensor([[11, 12, 13, 14]]), torch.tensor([[11, 12, 13, 99]])):
+        cache = cache_builder()
+        lens = [int(k.shape[-2]) for k in cache.key_cache]
+        mask = torch.ones(1, max(lens) + 4, dtype=torch.long)
         with torch.no_grad():
-            outs.append(tiny_qwen3(q, attention_mask=mask, past_key_values=cache,
-                                   use_cache=True).logits)
+            outs.append(model(q, attention_mask=mask, past_key_values=cache,
+                              use_cache=True).logits)
+    return (outs[0][0, 0] - outs[1][0, 0]).abs().max().item()
 
-    drift = (outs[0][0, 0] - outs[1][0, 0]).abs().max().item()
-    print(f"\nD8 MEASUREMENT: first-position logit drift = {drift:.3e}")
-    # Record the number in docs/FINDINGS.md. Non-zero drift confirms D8.
-    assert drift >= 0.0  # this test reports; the next one enforces
+
+def test_untrimmed_cache_is_causal(tiny_qwen3):
+    """Control. Establishes the measurement itself reads zero when it should."""
+    base = _prefill(tiny_qwen3, 12)
+    all_layers = list(range(tiny_qwen3.config.num_hidden_layers))
+    drift = _causality_drift(tiny_qwen3, lambda: prepare_key_cache(base, all_layers))
+    assert drift == 0.0, f"control drifted: {drift:.3e}"
+
+
+def test_stock_path_is_NOT_causal_when_trimmed(tiny_qwen3):
+    """D8, already confirmed by measurement before implementation began:
+    cache lengths [12, 1, 12, 1] gave a first-position drift of 1.940e-01.
+
+    This test pins the DEFECT so that a future transformers upgrade silently
+    fixing it is visible rather than invisible. If it starts failing, stock
+    sdpa began handling ragged caches causally -- update docs/FINDINGS.md and
+    re-evaluate whether forward_with_ragged_cache is still needed.
+    """
+    base = _prefill(tiny_qwen3, 12)
+    drift = _causality_drift(tiny_qwen3, lambda: prepare_key_cache(base, [2]))
+    assert drift > 1e-3, (
+        f"stock ragged path now appears causal (drift={drift:.3e}); D8 may be "
+        "fixed upstream -- see docs/FINDINGS.md"
+    )
 
 
 def test_per_layer_masks_are_causal_and_correctly_sized(tiny_qwen3):
@@ -2845,13 +2859,22 @@ def attention_from_stash(attn_module, stash: dict, q_len_receiver: int) -> torch
     return torch.softmax(scores, dim=-1, dtype=torch.float32)
 
 
-def layer_importance(attn_by_layer: dict, q_len: int) -> dict:
-    """Mass each receiver query puts on context keys 1..len(context)-1."""
+def layer_importance(attn_by_layer: dict, q_len: int | None = None) -> dict:
+    """Mass each receiver query puts on context keys 1..len(context)-1.
+
+    The slice is upstream's `attn[..., 1:-q_len]` (layer_importance.py:21): drop
+    key position 0, and drop the receiver's own q_len positions at the tail.
+    q_len is taken from the tensor itself so it cannot disagree with the data;
+    the parameter is accepted only to cross-check the caller.
+    """
     out = {}
     for i, weights in attn_by_layer.items():
-        sliced = weights[..., 1: weights.shape[-1] - weights.shape[-2]] \
-            if q_len is None else weights[..., 1: -weights.shape[-2]]
-        value = sliced.sum(dim=-1).mean()
+        tail = weights.shape[-2]
+        if q_len is not None and q_len != tail:
+            raise ValueError(
+                f"layer {i}: caller says q_len={q_len} but tensor has {tail} queries"
+            )
+        value = weights[..., 1:-tail].sum(dim=-1).mean()
         out[i] = 0 if torch.isnan(value) else value.item()
     return out
 
