@@ -194,6 +194,65 @@ def test_cached_generation_honours_a_padded_history(tiny_qwen3):
     )
 
 
+def test_cached_generation_matches_per_row_references_in_a_ragged_batch(tiny_qwen3):
+    """Batch-invariance for the cached path, batch size 2, both boundaries ragged.
+
+    test_batched_greedy_matches_unbatched already proves batch-invariance for
+    the no-cache path; this is its analogue across the cache boundary. Row 0
+    has an unpadded prefix but a padded prompt; row 1 has a padded prefix but
+    an unpadded prompt -- so both the past_mask side and the ordinary
+    attention_mask side are exercised with genuine ragged padding, and in
+    opposite rows, so a bug that only affects one row position (e.g. reusing
+    row 0's mask for the whole batch) cannot hide behind the other row.
+
+    The oracle for each row is a batch-of-one, no-cache run over that row's
+    own fully unpadded sequence -- untouched by this function's batching or
+    widening, so it cannot be contaminated by a bug in either.
+    """
+    real_a, real_b = [93, 223, 18, 151, 112], [50, 60, 70]
+    pad_b = 2  # row B's prefix is left-padded by 2 to match row A's width.
+    prefix_ids = torch.tensor([real_a, [0] * pad_b + real_b], dtype=torch.long)
+    prefix_mask = torch.tensor([[1] * len(real_a), [0] * pad_b + [1] * len(real_b)])
+
+    prompt_a, prompt_b = [232, 26, 24], [40, 41]
+    pad_prompt_b = 1  # row B's prompt is left-padded by 1 to match row A's width.
+    prompt_ids = torch.tensor([prompt_a, [0] * pad_prompt_b + prompt_b], dtype=torch.long)
+    prompt_mask = torch.tensor([[1] * len(prompt_a), [0] * pad_prompt_b + [1] * len(prompt_b)])
+
+    # Same left-pad position convention as test_cached_generation_honours_a_padded_history,
+    # applied per-row (vectorized over the batch dimension).
+    position_ids = prefix_mask.long().cumsum(-1) - 1
+    position_ids.masked_fill_(prefix_mask == 0, 1)
+    with torch.no_grad():
+        prefix_out = tiny_qwen3(
+            prefix_ids, attention_mask=prefix_mask, position_ids=position_ids,
+            use_cache=True,
+        )
+    cache = prefix_out.past_key_values  # generate() mutates its cache argument
+
+    n_new = 5
+    got, seqs = generate_text_batch(
+        tiny_qwen3, _IdTok(), prompt_ids, prompt_mask, max_new_tokens=n_new, greedy=True,
+        past_key_values=copy.deepcopy(cache), past_mask=prefix_mask,
+    )
+
+    # Independent per-row oracle: each row's own fully unpadded sequence,
+    # batch of 1, no cache at all.
+    full_row0 = torch.tensor([real_a + prompt_a], dtype=torch.long)
+    ref_row0, _ = generate_text_batch(
+        tiny_qwen3, _IdTok(), full_row0, torch.ones_like(full_row0),
+        max_new_tokens=n_new, greedy=True,
+    )
+    full_row1 = torch.tensor([real_b + prompt_b], dtype=torch.long)
+    ref_row1, _ = generate_text_batch(
+        tiny_qwen3, _IdTok(), full_row1, torch.ones_like(full_row1),
+        max_new_tokens=n_new, greedy=True,
+    )
+
+    assert got[0] == ref_row0[0], (got[0], ref_row0[0])
+    assert got[1] == ref_row1[0], (got[1], ref_row1[0])
+
+
 def test_pad_batch_is_left_padded():
     class _Tok:
         pad_token_id = 0
