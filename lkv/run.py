@@ -29,7 +29,12 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings) ->
         "accuracy": (correct / n) if n else 0.0,
         "mean_score": (sum(p["score"] for p in per_item) / n) if n else 0.0,
         "per_item": per_item,
-        "hop_records": hops,
+        # Named for what it is. Hop metadata is captured from the FIRST batch
+        # only -- cache lengths differ per batch because prompts differ in
+        # length, so this is one representative relay, not a whole-run summary.
+        # Anything that needs a run-level figure must aggregate across batches
+        # rather than reading a single entry out of here.
+        "hop_records_first_batch": hops,
         "total_sec": timings["total_sec"],
         "sec_per_item": (timings["total_sec"] / n) if n else 0.0,
     }
@@ -76,7 +81,7 @@ def main(argv=None) -> int:
         with open(cfg.out_json, "w") as fh:
             fh.write(payload)
     print(json.dumps({k: v for k, v in record.items()
-                      if k not in ("per_item", "hop_records")}, indent=2))
+                      if k not in ("per_item", "hop_records_first_batch")}, indent=2))
     return 0
 
 
