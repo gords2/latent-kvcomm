@@ -55,7 +55,7 @@ Method: prefill 12 context tokens, apply KVComm's `prepare_key_cache` semantics 
 
 The plan's `lkv/kvcomm/trim.py:build_per_layer_masks` and `forward_with_ragged_cache` (Task 12) address this. Task 15 step 3 item 3 compares the two paths on real weights.
 
-### D9 — the per-layer-mask fix is exactly causal. CONFIRMED.
+### D8 (fix verified) — the per-layer-mask correction is exactly causal.
 
 Task 12 implemented `build_per_layer_masks` and `forward_with_ragged_cache`
 (`lkv/kvcomm/trim.py`), which give every decoder layer its own additive mask
@@ -162,3 +162,30 @@ Also confirmed harmless, so recorded to avoid re-litigation: upstream's `precisi
 and `recall` are transposed relative to the usual convention (`utils/f1.py:18-27`
 divides by the reference and candidate set sizes respectively). F1 is symmetric in
 the two, so the resulting value is identical. No change needed.
+
+### D15 — the traced query must be post-RoPE. CONFIRMED against upstream.
+
+Found by review during Task 12; the defect was in this project's plan, not in
+upstream.
+
+Our tracer stashed the query straight out of `q_proj` (plus `q_norm`), with **no
+rotary embedding applied**, while the key was read back from the KV cache where
+RoPE had already been applied. Query and key therefore lived in different rotary
+bases, making every recomputed `Q·Kᵀ` meaningless — and since those attention
+weights *are* the layer-importance statistic, the entire KVComm ranking would
+have been scored on noise. It would not have crashed or looked wrong; it would
+have produced a plausible ranking that meant nothing.
+
+Upstream gets this right by construction: `stock-kvcomm/model_attn.py:37-40`
+projects Q, K, V and then calls `apply_rotary_pos_emb` **before** stashing
+`query_states` and `key_states` at `:50-58`. It overrides the attention forward
+wholesale rather than wrapping it, so the post-RoPE tensors are simply in scope.
+
+Our wrapper design cannot see upstream's local variables, so the tracer now
+applies RoPE itself using the `position_embeddings` (cos, sin) passed into the
+forward, resolving `apply_rotary_pos_emb` dynamically from the attention
+module's own modeling file — Qwen3 and Llama each ship an identical copy, and
+hard-coding one family's import path would break the other.
+
+Recorded because this class of bug is invisible downstream: nothing about a
+wrongly-rotated query produces an error, only worse numbers.

@@ -2859,14 +2859,44 @@ def _patch(attn_module):
         )
         if hidden_states.shape[-2] > 1 and past_key_value is not None:
             idx = attn_module.layer_idx
-            attn_module.attn_inputs["query"] = _project_q(attn_module, hidden_states)
+            # Both post-RoPE: the query is rotated here, the key was rotated
+            # before it was written to the cache. Mismatched bases would make
+            # every recomputed attention weight meaningless.
+            attn_module.attn_inputs["query"] = _project_q(
+                attn_module, hidden_states, position_embeddings
+            )
             attn_module.attn_inputs["key"] = past_key_value.key_cache[idx].detach()
         return out
 
     return original_forward, traced_forward
 
 
-def _project_q(attn_module, hidden_states):
+def _rope_fn(attn_module):
+    """Resolve `apply_rotary_pos_emb` from the module's own modeling file.
+
+    Qwen3 and Llama each define their own identical copy; resolving dynamically
+    avoids hard-coding one family's import path.
+    """
+    import importlib
+    mod = importlib.import_module(type(attn_module).__module__)
+    fn = getattr(mod, "apply_rotary_pos_emb", None)
+    if fn is None:
+        raise RuntimeError(
+            f"{type(attn_module).__module__} has no apply_rotary_pos_emb; "
+            "the tracer cannot align query and key rotary bases"
+        )
+    return fn
+
+
+def _project_q(attn_module, hidden_states, position_embeddings):
+    """Project and RoPE the query so it shares a basis with the cached keys.
+
+    THIS IS THE WHOLE POINT: keys read back from the cache have already had RoPE
+    applied, so a query without it lives in a different rotary basis and every
+    Q.K^T is meaningless -- which would silently corrupt the layer ranking, i.e.
+    KVComm's entire method. Upstream stashes `query_states` only AFTER
+    `apply_rotary_pos_emb` (stock-kvcomm/model_attn.py:40).
+    """
     q = attn_module.q_proj(hidden_states)
     b, t, _ = hidden_states.shape
     n_heads = attn_module.config.num_attention_heads
@@ -2874,6 +2904,11 @@ def _project_q(attn_module, hidden_states):
     q = q.view(b, t, n_heads, head_dim).transpose(1, 2)
     if hasattr(attn_module, "q_norm"):
         q = attn_module.q_norm(q)
+
+    # A dummy key of the query's shape: apply_rotary_pos_emb rotates both
+    # arguments and we only need the first back.
+    cos, sin = position_embeddings
+    q, _ = _rope_fn(attn_module)(q, torch.zeros_like(q), cos, sin)
     return q.detach()
 
 
@@ -2946,7 +2981,7 @@ def build_per_layer_masks(cache, q_len: int, device, dtype):
     A trimmed layer's `sink` cached positions are all visible (they precede every
     receiver token); the receiver block is strictly lower-triangular.
     """
-    neg = torch.finfo(dtype).min
+    neg = float("-inf")   # the test asserts torch.isinf; finfo.min is finite
     masks = []
     for k in cache.key_cache:
         past = int(k.shape[-2])
