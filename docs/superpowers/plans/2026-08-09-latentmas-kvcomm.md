@@ -1056,12 +1056,21 @@ def test_matrix_solves_the_least_squares_system(tiny_qwen3):
     W, target_norm = build_realign_matrix(tiny_qwen3, "cpu")
     e_in = tiny_qwen3.get_input_embeddings().weight.detach().float()
     e_out = tiny_qwen3.get_output_embeddings().weight.detach().float()
+    dim = e_in.shape[1]
+    assert W.shape == (dim, dim)
 
-    assert W.shape == (e_in.shape[1], e_in.shape[1])
-    # residual of the ridge solve must beat the identity, since embeddings are untied
     resid_w = (e_out @ W - e_in).norm()
-    resid_i = (e_out - e_in).norm()
-    assert resid_w < resid_i, (resid_w.item(), resid_i.item())
+    assert resid_w < (e_out - e_in).norm()      # beats the identity
+
+    # Beating the identity is necessary but NOT sufficient, and this is the trap:
+    # solving the TRANSPOSED problem also beats it (measured 2.97 vs 3.65 on this
+    # fixture), so an orientation slip would pass an identity-only check. Compare
+    # against the transposed solve directly.
+    gram_t = e_in.T @ e_in + 1e-5 * torch.eye(dim)
+    w_flipped = torch.linalg.solve(gram_t, e_in.T @ e_out)
+    resid_flipped = (e_out @ w_flipped - e_in).norm()
+    assert resid_w < resid_flipped, (resid_w.item(), resid_flipped.item())
+
     # target_norm is the mean row norm of the INPUT embedding
     assert torch.allclose(target_norm, e_in.norm(dim=1).mean(), atol=1e-4)
 
@@ -1070,6 +1079,8 @@ def test_realign_off_renorm_off_is_exactly_identity(tiny_qwen3):
     proj = LatentProjector(tiny_qwen3, realign=False, renorm=False, device="cpu")
     h = torch.randn(3, tiny_qwen3.config.hidden_size)
     assert torch.equal(proj(h), h)
+    # And the [D, D] solve must never have run for this configuration.
+    assert proj.builds == 0
 
 
 def test_renorm_alone_rescales_but_preserves_direction(tiny_qwen3):
