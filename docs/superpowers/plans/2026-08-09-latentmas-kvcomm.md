@@ -1400,14 +1400,6 @@ The metric ambiguity must be implemented as *two* functions, not resolved by gue
 `lkv/lemma.py` isolates the only nltk dependency in the codebase, so the corpora
 download happens in one place and the failure mode is one clear exception:
 
-```python
-"""WordNet lemmatization, matching stock-kvcomm/utils/metric_tools.py:188-210.
-
-Isolated in its own module because it is the codebase's only nltk dependency and
-it needs corpora that must be present before the first call. It raises rather
-than degrading to unlemmatized text: a silent fallback would change the metric
-while still reporting it as KVComm's metric.
-"""
 Downloads are attempted only when a capability is genuinely missing. Upstream
 calls `nltk.download()` unconditionally at import (`metric_tools.py:18-23`), which
 re-attempts a network index fetch in every fresh process — measured at 1250 bytes
@@ -1418,6 +1410,18 @@ corpus path also sidesteps guessing whether a corpus is stored unzipped
 on this machine the path probe reports wordnet missing while lemmatization works.
 
 ```python
+"""WordNet lemmatization, matching stock-kvcomm/utils/metric_tools.py:188-210.
+
+Isolated in its own module because it is the codebase's only nltk dependency and
+it needs corpora that must be present before the first call. It raises rather
+than degrading to unlemmatized text: a silent fallback would change the metric
+while still reporting it as KVComm's metric.
+
+Downloads are attempted only when a capability is genuinely missing -- upstream
+calls nltk.download() unconditionally at import, which re-attempts a network
+fetch in every fresh process. Probing functionally rather than by corpus path
+also sidesteps whether a corpus is stored zipped, which varies by install.
+"""
 from __future__ import annotations
 
 import functools
