@@ -135,21 +135,29 @@ which this can compound, not KVComm's original one.
 
 `lkv/latentmas.py` cannot import `lkv/kvcomm/` (Task 17's own code-organization
 rule: `lkv/integrate.py` is the only module allowed to depend on both), so
-closing this gap is not a small edit inside the hook -- it needs
-`forward_with_ragged_cache` (currently one forward pass) extended into an
-autoregressive decode loop and threaded through `generate_latent`'s per-step
-calls and `generate_text_batch`'s judger call, the same new-infrastructure scope
-already flagged for `run_pair`/`receiver_logits` above, now inside the relay
-loop instead of a single hop.
+closing this gap is not a small edit inside the hook.
+
+**This is not the same gap Task 21 (Phase 6, already planned) closes.** Task 21
+builds `generate_with_ragged_cache` and wires it into `run_pair` via a
+`causal_ragged` flag -- its own Files/Interfaces list only
+`lkv/kvcomm/ragged_decode.py`, `lkv/kvcomm/pair.py`, `lkv/config.py`. Nothing in
+Task 21 as planned touches `lkv/latentmas.py` or `lkv/integrate.py`, so even
+after Task 21 lands, `run_pair`'s causality gap is closed while
+`run_latentmas`'s (this section's) is not. `generate_with_ragged_cache` is
+declared "signature-compatible with `generate_text_batch`" specifically so
+`run_pair` can switch on one flag -- the same compatibility would let a future
+task thread it into `generate_latent`'s per-step calls and into
+`run_latentmas`'s judger call, but that task does not exist yet in the plan.
 
 **Consequence.** Any Phase 5 sweep (Task 20) with `top_layers < 1.0`, in either
 `trim_scope`, is currently measuring the stock (non-causal) path at every
 boundary after the first trim -- not a corrected KVComm-in-LatentMAS
-measurement. `trim_scope="all"` vs `"delta"` and `every_hop` can still be
-compared against EACH OTHER on this shared, uncorrected footing, but neither
-should be reported as what a causally-correct trim would produce until this is
-resolved the same way the section above is resolved. `top_layers=1.0` (no trim
-built at all) is unaffected.
+measurement, and NOT something Task 21 as currently scoped will fix.
+`trim_scope="all"` vs `"delta"` and `every_hop` can still be compared against
+EACH OTHER on this shared, uncorrected footing, but neither should be reported
+as what a causally-correct trim would produce until a Task 21-equivalent
+extension exists for `run_latentmas`. `top_layers=1.0` (no trim built at all)
+is unaffected.
 
 ---
 
