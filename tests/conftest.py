@@ -123,8 +123,11 @@ def _guard_model_state(_capture_model_state):
             raise AssertionError(f"Cannot find model.layers in {model_name}")
 
         for i, layer in enumerate(layers):
-            # Check for leftover attn_inputs or other attached attributes
-            if hasattr(layer, "attn_inputs"):
+            # Check for leftover attn_inputs or other attached attributes.
+            # The tracer (lkv/kvcomm/tracer.py) attaches attn_inputs to
+            # layer.self_attn, not to layer itself -- this must inspect
+            # self_attn or the check can never fire.
+            if hasattr(layer.self_attn, "attn_inputs"):
                 raise AssertionError(
                     f"{model_name} layer {i} has leftover attn_inputs attribute. "
                     f"Tests must remove attached attributes in finally blocks."
