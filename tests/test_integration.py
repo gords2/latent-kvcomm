@@ -186,14 +186,15 @@ def test_main_wires_latentmas_trim_hook_and_surfaces_hook_records(monkeypatch, t
     none of the tests above exercise this, since they call run_latentmas
     directly and bypass main() entirely.
 
-    calibrate() (lkv/kvcomm/pair.py) needs "instruction"/"context"/"question"
-    fields -- the KVComm sender/receiver split -- so these items carry all
-    three even though run_latentmas itself only ever reads "question" (see
-    lkv/latentmas.py's _render). Real gsm8k/mbppplus items have no
-    instruction/context at all, so --system latentmas --task gsm8k
-    --top_layers <1.0 would raise KeyError inside calibrate() for that reason
-    -- a pre-existing coupling in calibrate(), not something this test papers
-    over; see the task report's concerns section.
+    This test doesn't pass --calib_source, so it now exercises Task 18's
+    DEFAULT path: calibrate_relay() (lkv/relay_calib.py), which only reads
+    "question" (see lkv/latentmas.py's _render) -- so no instruction/context is
+    actually required any more. Items still carry all three anyway, since this
+    test predates Task 18 and originally existed to route around a real
+    KeyError: --calib_source pair still calls Task 14's calibrate()
+    (lkv/kvcomm/pair.py), which DOES need "instruction"/"context"/"question",
+    and real gsm8k/mbppplus items have neither -- that KeyError risk is exactly
+    why Task 18 made "relay" the default rather than "pair".
     """
     from lkv.run import main
 

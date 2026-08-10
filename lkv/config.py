@@ -62,6 +62,11 @@ class RunConfig:
     sigma: float = 10.0
     calib_size: int = 1
     random_selection: bool = False
+    # "pair": reuse Task 14's KVComm-style sender/receiver calibration (cheap,
+    # but imports a ranking from a different distribution than the relay it
+    # gets applied to). "relay": trace the next role's prefill over the
+    # accumulated relay cache itself -- see lkv/relay_calib.py.
+    calib_source: str = "relay"
     # Integration
     trim_scope: str = "all"          # "all" | "delta"
     trim_every_hop: bool = False
@@ -108,6 +113,7 @@ def parse_args(argv: list[str] | None = None) -> RunConfig:
     p.add_argument("--sigma", type=float, default=10.0)
     p.add_argument("--calib_size", type=int, default=1)
     p.add_argument("--random_selection", action="store_true")
+    p.add_argument("--calib_source", default="relay", choices=["pair", "relay"])
     p.add_argument("--trim_scope", default="all", choices=["all", "delta"])
     p.add_argument("--trim_every_hop", action="store_true")
     p.add_argument("--out_json", default="")

@@ -14,6 +14,7 @@ from lkv.kvcomm.importance import select_layers
 from lkv.kvcomm.pair import calibrate, run_baseline, run_pair, run_skyline
 from lkv.latentmas import run_latentmas
 from lkv.modeling import load_model
+from lkv.relay_calib import calibrate_relay
 from lkv.scoring import score_item
 
 
@@ -91,7 +92,17 @@ def main(argv=None) -> int:
                                     cfg.sigma, cfg.random_selection, cfg.seed)
         layer_retention = len(kept_layers) / model.config.num_hidden_layers
     elif cfg.system == "latentmas" and cfg.top_layers < 1.0:
-        totals = calibrate(model, tokenizer, items, cfg)
+        # calib_source="pair" reuses Task 14's KVComm-style calibration -- cheap,
+        # and the honest baseline for "we just dropped KVComm in", but it needs
+        # instruction/context fields gsm8k and mbppplus items don't have.
+        # calib_source="relay" (the default) measures importance where it is
+        # actually applied: the next role's prefill over the accumulated relay
+        # cache (lkv/relay_calib.py) -- see that module's docstring for why a
+        # KVComm-pair ranking would otherwise come from a different distribution.
+        if cfg.calib_source == "relay":
+            totals = calibrate_relay(model, tokenizer, cfg, items)
+        else:
+            totals = calibrate(model, tokenizer, items, cfg)
         kept_layers = select_layers(totals, cfg.top_layers, cfg.alpha, cfg.mu,
                                     cfg.sigma, cfg.random_selection, cfg.seed)
 
