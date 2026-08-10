@@ -3850,6 +3850,31 @@ def test_top_layers_one_is_a_no_op(tiny_qwen3):
     assert retention(hook(cache, hop_index=0, inherited_len=0)) == 1.0
 
 
+def test_delta_actually_compounds_across_hops(tiny_qwen3):
+    """THE test the novel axis needs. `delta` must keep trimming at every
+    boundary, not just the first.
+
+    A cache-wide `inherited_len + sink` cut silently no-ops after hop 1, because
+    an already-collapsed layer is shorter than the global inherited length and
+    torch slicing clamps rather than raising. That produced RISING retention
+    (0.583 -> 0.792 -> 0.861) where `all` FELL (0.583 -> 0.542 -> 0.528) -- i.e.
+    delta looked gentler on accuracy only because it had stopped trimming.
+    """
+    hook = make_trim_hook([2], scope="delta", every_hop=True)
+    cache = _cache(tiny_qwen3, 8)
+    inherited = past_length(cache)
+    for hop in range(3):
+        # simulate the next agent appending a segment, then trimming
+        cache = _extend(tiny_qwen3, cache, n_new=6)
+        cache = hook(cache, hop_index=hop, inherited_len=inherited)
+        inherited = past_length(cache)
+    rets = [r["retention"] for r in hook.records]
+    assert rets == sorted(rets, reverse=True), (
+        f"delta retention must not increase across hops, got {rets}"
+    )
+    assert rets[-1] < rets[0], f"delta stopped compounding: {rets}"
+
+
 def test_relay_with_a_hook_shortens_the_cache(tiny_qwen3):
     cfg = RunConfig(system="latentmas", task="gsm8k", model_name="Qwen/Qwen3-8B",
                     latent_steps=4, n_agents=4, greedy=True, max_new_tokens=4,
@@ -3892,14 +3917,36 @@ from lkv.kvcomm.trim import prepare_key_cache, retention
 
 
 def trim_delta(cache, layers_list, inherited_len: int, sink: int = 1):
+    """Keep each unselected layer's inherited history plus `sink` of the new segment.
+
+    THE CUT MUST BE PER-LAYER, not cache-wide. `inherited_len` is the relay's
+    GLOBAL length before this agent ran, but an unselected layer trimmed at an
+    earlier hop is already far shorter than that. Using `inherited_len + sink`
+    directly then exceeds such a layer's actual length, and torch slicing clamps
+    silently instead of raising -- so every hop after the first becomes a no-op.
+
+    That bug is not subtle in its consequences: measured on the 4-layer fixture
+    over 3 hops, `delta` retention ROSE 0.583 -> 0.792 -> 0.861, converging on
+    "stops trimming", while `all` on the identical run FELL 0.583 -> 0.542 ->
+    0.528. It would have produced a plausible headline -- "delta preserves
+    accuracy better than all" -- that actually just meant "delta barely trims".
+
+    The correct quantity is each layer's own length minus the segment this agent
+    appended, plus the sink. Every layer grows by the same number of positions
+    when tokens are appended, so the new segment is the last `new_seg` entries of
+    whatever length that layer currently has.
+    """
     keep = set(int(i) for i in layers_list)
+    global_now = max(int(k.shape[-2]) for k in cache.key_cache)
+    new_seg = max(0, global_now - int(inherited_len))
     out = DynamicCache()
     for i in range(len(cache.key_cache)):
         k, v = cache.key_cache[i], cache.value_cache[i]
         if i in keep or i == 0:
             out.update(k, v, i)
         else:
-            cut = inherited_len + sink
+            layer_len = int(k.shape[-2])
+            cut = min(layer_len, max(sink, layer_len - new_seg + sink))
             out.update(k[:, :, :cut, :], v[:, :, :cut, :], i)
     return out
 
