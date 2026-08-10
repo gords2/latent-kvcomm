@@ -14,6 +14,22 @@ def _cache(model, n_pos):
         return model(torch.randint(1, 200, (1, n_pos)), use_cache=True).past_key_values
 
 
+def _extend(model, cache, n_new):
+    """Simulate a later agent appending `n_new` positions to (possibly already
+    ragged) cache. Every layer grows by exactly `n_new`, regardless of its
+    current length -- that per-layer growth-by-the-same-amount fact is exactly
+    what trim_delta's per-layer cut relies on (see its docstring). The
+    attention_mask is sized off `past_length`, which reads layer 0 -- always
+    untrimmed in either scope -- so it stays consistent with what the model
+    itself uses to place `cache_position`.
+    """
+    ids = torch.randint(1, 200, (1, n_new))
+    mask = torch.ones(1, past_length(cache) + n_new, dtype=torch.long)
+    with torch.no_grad():
+        return model(ids, attention_mask=mask, past_key_values=cache,
+                     use_cache=True).past_key_values
+
+
 def test_trim_delta_keeps_the_inherited_prefix(tiny_qwen3):
     cache = _cache(tiny_qwen3, 20)
     out = trim_delta(cache, layers_list=[2], inherited_len=12, sink=1)
@@ -65,6 +81,33 @@ def test_top_layers_one_is_a_no_op(tiny_qwen3):
     hook = make_trim_hook(all_layers, scope="all")
     cache = _cache(tiny_qwen3, 12)
     assert retention(hook(cache, hop_index=0, inherited_len=0)) == 1.0
+
+
+def test_delta_actually_compounds_across_hops(tiny_qwen3):
+    """THE test the novel axis needs. `delta` must keep trimming at every
+    boundary, not just the first.
+
+    A cache-wide `inherited_len + sink` cut silently no-ops after hop 1,
+    because an already-collapsed layer is shorter than the global inherited
+    length and torch slicing clamps rather than raising. That produced RISING
+    retention (0.583 -> 0.792 -> 0.861) where `all` FELL (0.583 -> 0.542 ->
+    0.528) -- i.e. delta looked gentler on accuracy only because it had
+    stopped trimming. See lkv/integrate.py's trim_delta docstring for the
+    per-layer fix and the reasoning.
+    """
+    hook = make_trim_hook([2], scope="delta", every_hop=True)
+    cache = _cache(tiny_qwen3, 8)
+    inherited = past_length(cache)
+    for hop in range(3):
+        # simulate the next agent appending a segment, then trimming
+        cache = _extend(tiny_qwen3, cache, n_new=6)
+        cache = hook(cache, hop_index=hop, inherited_len=inherited)
+        inherited = past_length(cache)
+    rets = [r["retention"] for r in hook.records]
+    assert rets == sorted(rets, reverse=True), (
+        f"delta retention must not increase across hops, got {rets}"
+    )
+    assert rets[-1] < rets[0], f"delta stopped compounding: {rets}"
 
 
 def test_relay_with_a_hook_shortens_the_cache(tiny_qwen3):

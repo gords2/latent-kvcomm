@@ -32,23 +32,43 @@ from lkv.kvcomm.trim import prepare_key_cache, retention
 
 
 def trim_delta(cache, layers_list, inherited_len: int, sink: int = 1):
-    """Unselected layers keep `[:inherited_len]` plus `sink` new positions.
+    """Keep each unselected layer's inherited history plus `sink` of the new segment.
+
+    THE CUT MUST BE PER-LAYER, not cache-wide. `inherited_len` is the relay's
+    GLOBAL length before this agent ran, but an unselected layer trimmed at an
+    earlier hop is already far shorter than that. Using `inherited_len + sink`
+    directly then exceeds such a layer's actual length, and torch slicing
+    clamps silently instead of raising -- so every hop after the first becomes
+    a no-op (FOUND IN REVIEW: measured on the 4-layer fixture over 3 hops,
+    `delta` retention ROSE 0.583 -> 0.792 -> 0.861, converging on "stops
+    trimming", while `all` on the identical run FELL 0.583 -> 0.542 -> 0.528.
+    It would have produced a plausible headline -- "delta preserves accuracy
+    better than all" -- that actually just meant "delta barely trims", exactly
+    the kind of artefact this project exists to catch rather than produce).
+
+    The correct quantity is each layer's own length minus the segment this
+    agent appended, plus the sink. Every layer grows by the same number of
+    positions when tokens are appended, so the new segment is the last
+    `new_seg` entries of whatever length that layer currently has -- not the
+    last `new_seg` entries of the GLOBAL length, which is only the same
+    quantity for an untouched layer.
 
     inherited_len is the cache length BEFORE this hop's agent added anything
     (run_latentmas's own `before = past_length(cache)`, taken prior to
-    generate_latent) -- so the kept prefix is exactly the history this hop
-    inherited from earlier boundaries, plus a `sink`-sized peek at what this
-    agent just contributed. Layer 0 is always retained in full, never a
-    candidate for collapse in either scope.
+    generate_latent). Layer 0 is always retained in full, never a candidate
+    for collapse in either scope.
     """
     keep = set(int(i) for i in layers_list)
+    global_now = max(int(k.shape[-2]) for k in cache.key_cache)
+    new_seg = max(0, global_now - int(inherited_len))
     out = DynamicCache()
     for i in range(len(cache.key_cache)):
         k, v = cache.key_cache[i], cache.value_cache[i]
         if i in keep or i == 0:
             out.update(k, v, i)
         else:
-            cut = inherited_len + sink
+            layer_len = int(k.shape[-2])
+            cut = min(layer_len, max(sink, layer_len - new_seg + sink))
             out.update(k[:, :, :cut, :], v[:, :, :cut, :], i)
     return out
 
