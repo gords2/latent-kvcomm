@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import json
-import time
 from dataclasses import asdict, replace
 
 import torch
 
 from lkv.config import RunConfig, parse_args
 from lkv.data import load_task
+from lkv.instrument import PeakMemory, Timer, attention_positions, cache_bytes
 from lkv.integrate import make_trim_hook
 from lkv.kvcomm.importance import select_layers
 from lkv.kvcomm.pair import calibrate, run_baseline, run_pair, run_skyline
@@ -18,10 +18,39 @@ from lkv.relay_calib import calibrate_relay
 from lkv.scoring import score_item
 
 
+def _measuring_hook(base_hook, stats_out: dict):
+    """Wrap a (possibly-None) trim hook so its LAST call each batch also
+    measures the cache it hands back.
+
+    run_latentmas returns only (final_texts, hop_records) -- Task 20 and the
+    existing tests depend on that 2-tuple, so this is how the per-batch cache
+    is reached WITHOUT widening the signature: trim_hook already receives the
+    cache at every non-final hop, and the judger role that follows never
+    touches it again, so the last call this wrapper sees in a batch is
+    exactly the cache the judger generates against -- the batch's "final hop."
+
+    Building this unconditionally (whenever the run is latentmas, regardless
+    of whether a real trim hook exists) is what makes the reference condition
+    measurable too: at top_layers==1.0 there is no trim hook to hang this off
+    of, yet that untrimmed run is the baseline every other run's ratio is
+    divided by, so it still needs its own cache_bytes/attention_positions.
+    """
+    def hook(cache, hop_index, inherited_len):
+        out = base_hook(cache, hop_index, inherited_len) if base_hook is not None else cache
+        stats_out["bytes"] = cache_bytes(out)
+        stats_out["positions"] = attention_positions(out)
+        return out
+    return hook
+
+
 def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
                  layer_retention: float | None = None,
                  kept_layers: list[int] | None = None,
-                 hook_records: list[dict] | None = None) -> dict:
+                 hook_records: list[dict] | None = None,
+                 peak_mem_bytes: int = 0,
+                 cache_bytes_at_final_hop_mean: float = 0.0,
+                 attention_positions_at_final_hop_mean: float = 0.0,
+                 cache_stat_batches: int = 0) -> dict:
     n = len(items)
     if not (len(predictions) == len(per_item) == n):
         raise ValueError(
@@ -59,6 +88,24 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
         # prompts differ in length, so this is one representative relay).
         # Empty for every system/config that never built a trim hook.
         "hook_records": hook_records if hook_records is not None else [],
+        # Wall clock and peak allocator usage for the whole batch loop --
+        # PeakMemory is a no-op (0) off CUDA, so this is always present but
+        # only ever nonzero on the GPU box (see lkv/instrument.py).
+        "peak_mem_bytes": peak_mem_bytes,
+        # MEAN cache_bytes/attention_positions at each batch's final relay hop
+        # (see _measuring_hook above), NOT a single batch's figure -- cache
+        # lengths differ between batches because prompt lengths differ, so
+        # one batch's number would silently be "whichever batch ran first"
+        # rather than a run-level figure. KVComm's paper reports no measured
+        # bytes at all, so these are new information, not a re-derivation.
+        # Zero/empty for any run with no latentmas relay cache to measure
+        # (system != "latentmas", e.g. kvcomm/skyline/baseline/single).
+        "cache_bytes_at_final_hop_mean": cache_bytes_at_final_hop_mean,
+        "attention_positions_at_final_hop_mean": attention_positions_at_final_hop_mean,
+        # How many batches the two means above were averaged over -- lets a
+        # reader (and Task 20) tell "averaged over 40 batches" apart from
+        # "averaged over 1", which the mean alone cannot.
+        "cache_stat_batches": cache_stat_batches,
     }
 
 
@@ -110,44 +157,64 @@ def main(argv=None) -> int:
     per_item: list[dict] = [None] * len(items)
     hops: list[dict] = []
     hook_records: list[dict] = []
-    started = time.time()
+    # Accumulated across batches, not read off any single one -- see
+    # _measuring_hook and the cache_bytes_at_final_hop_mean docstring below.
+    cache_byte_total = 0
+    position_total = 0
+    cache_stat_batches = 0
 
-    for offset, batch in _batches(items, cfg.generate_bs):
-        batch_hops: list[dict] = []
-        if cfg.system in ("latentmas", "single"):
-            # --system single is "the judger alone": same config, n_agents=1.
-            # dataclasses.replace copies every other field (including extra)
-            # from the existing instance, so nothing can be dropped or
-            # duplicated the way a hand-rolled asdict/dict-merge could.
-            local_cfg = cfg if cfg.system == "latentmas" else replace(cfg, n_agents=1)
-            # A FRESH hook per batch: run_latentmas always starts each batch's
-            # relay from cache=None, so every_hop=False's "trim only the first
-            # boundary" must reset per batch too -- a hook shared across
-            # batches would only ever trim in the very first batch and
-            # silently pass every later batch through untouched.
-            trim_hook = (make_trim_hook(kept_layers, cfg.trim_scope,
-                                        every_hop=cfg.trim_every_hop)
-                        if cfg.system == "latentmas" and kept_layers is not None
-                        else None)
-            texts, batch_hops = run_latentmas(model, tokenizer, local_cfg, batch,
-                                              trim_hook=trim_hook)
-            if trim_hook is not None and offset == 0:
-                hook_records = trim_hook.records
-        elif cfg.system == "kvcomm":
-            texts = run_pair(model, model_b, tokenizer, cfg, batch, kept_layers)
-        elif cfg.system == "skyline":
-            texts = run_skyline(model, tokenizer, cfg, batch)
-        elif cfg.system == "baseline":
-            texts = run_baseline(model, tokenizer, cfg, batch)
-        else:
-            raise NotImplementedError(f"system {cfg.system!r} arrives in a later task")
-        if offset == 0:
-            hops = batch_hops
-        for j, text in enumerate(texts):
-            i = offset + j
-            ok, score = score_item(cfg.task, text, batch[j])
-            predictions[i] = text
-            per_item[i] = {"i": i, "correct": bool(ok), "score": float(score)}
+    with Timer() as timer, PeakMemory(cfg.device) as mem:
+        for offset, batch in _batches(items, cfg.generate_bs):
+            batch_hops: list[dict] = []
+            if cfg.system in ("latentmas", "single"):
+                # --system single is "the judger alone": same config, n_agents=1.
+                # dataclasses.replace copies every other field (including extra)
+                # from the existing instance, so nothing can be dropped or
+                # duplicated the way a hand-rolled asdict/dict-merge could.
+                local_cfg = cfg if cfg.system == "latentmas" else replace(cfg, n_agents=1)
+                # A FRESH hook per batch: run_latentmas always starts each batch's
+                # relay from cache=None, so every_hop=False's "trim only the first
+                # boundary" must reset per batch too -- a hook shared across
+                # batches would only ever trim in the very first batch and
+                # silently pass every later batch through untouched. The same
+                # goes for batch_cache_stats, the dict _measuring_hook writes
+                # this batch's final-hop figures into.
+                base_hook = (make_trim_hook(kept_layers, cfg.trim_scope,
+                                            every_hop=cfg.trim_every_hop)
+                            if cfg.system == "latentmas" and kept_layers is not None
+                            else None)
+                batch_cache_stats: dict = {}
+                # Built for EVERY latentmas batch, even when base_hook is None
+                # (top_layers==1.0, no trimming) -- that untrimmed run is the
+                # reference every other run's ratio divides by, and it would
+                # go unmeasured otherwise. "single" never calls hooks at all
+                # (no non-final agent, hence nothing to measure), so leave it
+                # out rather than pass a hook that can never fire.
+                trim_hook = (_measuring_hook(base_hook, batch_cache_stats)
+                            if cfg.system == "latentmas" else None)
+                texts, batch_hops = run_latentmas(model, tokenizer, local_cfg, batch,
+                                                  trim_hook=trim_hook)
+                if base_hook is not None and offset == 0:
+                    hook_records = base_hook.records
+                if batch_cache_stats:
+                    cache_byte_total += batch_cache_stats["bytes"]
+                    position_total += batch_cache_stats["positions"]
+                    cache_stat_batches += 1
+            elif cfg.system == "kvcomm":
+                texts = run_pair(model, model_b, tokenizer, cfg, batch, kept_layers)
+            elif cfg.system == "skyline":
+                texts = run_skyline(model, tokenizer, cfg, batch)
+            elif cfg.system == "baseline":
+                texts = run_baseline(model, tokenizer, cfg, batch)
+            else:
+                raise NotImplementedError(f"system {cfg.system!r} arrives in a later task")
+            if offset == 0:
+                hops = batch_hops
+            for j, text in enumerate(texts):
+                i = offset + j
+                ok, score = score_item(cfg.task, text, batch[j])
+                predictions[i] = text
+                per_item[i] = {"i": i, "correct": bool(ok), "score": float(score)}
 
     if hook_records:
         # latentmas's own figure: the mean of what the trim hook actually kept
@@ -156,10 +223,16 @@ def main(argv=None) -> int:
         # cache a given layer selection ends up retaining.
         layer_retention = sum(r["retention"] for r in hook_records) / len(hook_records)
 
-    record = build_record(cfg, items, predictions, per_item, hops,
-                          {"total_sec": time.time() - started},
-                          layer_retention=layer_retention, kept_layers=kept_layers,
-                          hook_records=hook_records)
+    record = build_record(
+        cfg, items, predictions, per_item, hops, {"total_sec": timer.elapsed},
+        layer_retention=layer_retention, kept_layers=kept_layers,
+        hook_records=hook_records, peak_mem_bytes=mem.peak_bytes,
+        cache_bytes_at_final_hop_mean=(
+            cache_byte_total / cache_stat_batches if cache_stat_batches else 0.0),
+        attention_positions_at_final_hop_mean=(
+            position_total / cache_stat_batches if cache_stat_batches else 0.0),
+        cache_stat_batches=cache_stat_batches,
+    )
     payload = json.dumps(record, indent=2)
     if cfg.out_json:
         with open(cfg.out_json, "w") as fh:

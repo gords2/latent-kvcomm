@@ -1,5 +1,8 @@
 import json
 
+import torch
+from transformers import DynamicCache
+
 from lkv.config import RunConfig
 from lkv.run import build_record, main
 
@@ -158,3 +161,68 @@ def test_main_kvcomm_calibrates_once_and_reuses_model_b(monkeypatch, tmp_path):
     record = json.loads(out.read_text())
     assert record["kept_layers"] == kept_layers_expected
     assert record["layer_retention"] == len(kept_layers_expected) / 4
+
+
+def _mk_cache(n_pos):
+    """A 1-layer DynamicCache with n_pos positions -- cheap and deterministic,
+    so cache_bytes/attention_positions on it are exact arithmetic rather than
+    something read off a real model."""
+    cache = DynamicCache()
+    cache.update(torch.zeros(1, 1, n_pos, 1), torch.zeros(1, 1, n_pos, 1), 0)
+    return cache
+
+
+def test_main_aggregates_cache_stats_across_batches_not_just_the_first(monkeypatch, tmp_path):
+    """Task 19's central correctness point, exercised end-to-end through main().
+
+    Two things a bug here would get wrong SILENTLY (both would still produce
+    valid JSON, just a scientifically wrong number):
+    1. Only the LAST trim_hook call in a batch is that batch's "final hop" --
+       an earlier, non-final call (2 positions, below) must not leak into the
+       figure. This is exactly the run_latentmas contract Task 19 leans on to
+       reach the cache without widening its return signature.
+    2. The mean must be built across BOTH batches' final-hop values (5 and 9
+       positions, deliberately different -- real batches differ because
+       prompt lengths differ), not "whichever batch happened to run first".
+       Task 9 already caught this exact mistake once for hop_records
+       (renamed hop_records_first_batch as a result); this is its analogue
+       for the new _mean fields.
+
+    Also covers the reference condition: top_layers defaults to 1.0, so
+    kept_layers stays None and main() never builds a real trim hook -- yet
+    the measuring wrapper must still run, since an untrimmed run is the
+    baseline every other run's ratio divides by.
+    """
+    items = [{"gold": "0"}, {"gold": "4"}]
+
+    def fake_load_task(task, max_samples, seed):
+        return items
+
+    def fake_load_model(model_name, device):
+        return object(), object()
+
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+        final_n_pos = 5 + int(batch[0]["gold"])  # 5 for batch 1, 9 for batch 2
+        if trim_hook is not None:
+            trim_hook(_mk_cache(2), 0, 0)             # earlier hop -- must not count
+            trim_hook(_mk_cache(final_n_pos), 1, 2)    # this batch's final hop
+        return ["\\boxed{0}" for _ in batch], []
+
+    monkeypatch.setattr("lkv.run.load_task", fake_load_task)
+    monkeypatch.setattr("lkv.run.load_model", fake_load_model)
+    monkeypatch.setattr("lkv.run.run_latentmas", fake_run_latentmas)
+
+    out = tmp_path / "out.json"
+    argv = ["--system", "latentmas", "--task", "gsm8k", "--model_name", "Qwen/Qwen3-8B",
+            "--latent_steps", "1", "--generate_bs", "1", "--device", "cpu",
+            "--greedy", "--out_json", str(out)]
+
+    assert main(argv) == 0
+    record = json.loads(out.read_text())
+
+    assert record["kept_layers"] is None, "top_layers=1.0 must never select layers"
+    assert record["cache_stat_batches"] == 2
+    assert record["attention_positions_at_final_hop_mean"] == (5 + 9) / 2
+    # 1 layer, K+V, float32 (4 bytes/elem), numel == n_pos -> 8 bytes/position.
+    assert record["cache_bytes_at_final_hop_mean"] == 8 * (5 + 9) / 2
+    assert record["peak_mem_bytes"] == 0, "PeakMemory must be a safe no-op on cpu"
