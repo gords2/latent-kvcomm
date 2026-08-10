@@ -1,4 +1,8 @@
+import copy
+from importlib import import_module
+
 import torch
+from transformers import LlamaForCausalLM, Qwen3ForCausalLM
 
 from lkv.kvcomm.tracer import install_tracer, remove_tracer
 from lkv.kvcomm.trim import layer_map, prepare_key_cache, retention
@@ -79,3 +83,71 @@ def test_tracer_does_not_stash_on_single_token_decode(tiny_llama):
         assert first == after == 6, "decode step overwrote the prefill stash"
     finally:
         remove_tracer(tiny_llama, saved)
+
+
+def _eager_twin(model, model_cls):
+    """A same-config, same-weights copy running eager attention.
+
+    sdpa never exposes attention weights, so this is the only trustworthy
+    ground truth for "what did this forward actually attend to": construct a
+    twin with attn_implementation="eager", load the same weights, and read
+    `output_attentions=True`.
+    """
+    eager_config = copy.deepcopy(model.config)
+    eager_config._attn_implementation = "eager"
+    twin = model_cls(eager_config).to(torch.float32).eval()
+    twin.load_state_dict(model.state_dict())
+    return twin
+
+
+def _assert_stash_reproduces_real_attention(model, twin, n_pos=6):
+    """Recompute softmax(Q.K^T * scaling + causal_mask) from the tracer's own
+    stash and check it against the attention weights the (same-weights, same
+    input) eager twin actually computed. This is the numerical proof that
+    query and key in the stash share a rotary basis: if they did not, this
+    recomputation would not match, silently, with no crash -- exactly the
+    D8-fix-round-1 bug (see docs/FINDINGS.md).
+    """
+    saved = install_tracer(model)
+    try:
+        ids = torch.randint(1, 200, (1, n_pos))
+        with torch.no_grad():
+            model(ids, use_cache=True)
+            real_attn = twin(ids, use_cache=True, output_attentions=True).attentions
+
+        causal = torch.zeros(n_pos, n_pos).masked_fill(
+            torch.triu(torch.ones(n_pos, n_pos, dtype=torch.bool), diagonal=1),
+            float("-inf"),
+        )
+        # repeat_kv is architecture-specific in name only -- same body in both
+        # modeling files -- resolved the same way tracer.py resolves RoPE.
+        repeat_kv = import_module(type(model.model.layers[0].self_attn).__module__).repeat_kv
+
+        for i, layer in enumerate(model.model.layers):
+            stash = layer.self_attn.attn_inputs
+            q, k, scaling = stash["query"], stash["key"], stash["scaling"]
+            k_full = repeat_kv(k, layer.self_attn.num_key_value_groups)
+            with torch.no_grad():
+                scores = torch.matmul(q, k_full.transpose(2, 3)) * scaling + causal
+                recomputed = torch.softmax(scores, dim=-1)
+            torch.testing.assert_close(
+                recomputed, real_attn[i], atol=1e-5, rtol=1e-4,
+                msg=lambda m, i=i: f"layer {i}: {m}",
+            )
+    finally:
+        remove_tracer(model, saved)
+
+
+def test_stashed_query_key_reproduce_real_attention_weights_llama(tiny_llama):
+    """D8-fix-round-1 regression: without RoPE on the stashed query, this would
+    fail silently (no crash, just a wrong number) -- see the fix report for the
+    captured before/after output."""
+    twin = _eager_twin(tiny_llama, LlamaForCausalLM)
+    _assert_stash_reproduces_real_attention(tiny_llama, twin)
+
+
+def test_stashed_query_key_reproduce_real_attention_weights_qwen3(tiny_qwen3):
+    """Same proof on Qwen3, which additionally applies q_norm before RoPE --
+    covers the interaction the Llama case can't, since Llama has no q_norm."""
+    twin = _eager_twin(tiny_qwen3, Qwen3ForCausalLM)
+    _assert_stash_reproduces_real_attention(tiny_qwen3, twin)
