@@ -3916,14 +3916,25 @@ def make_trim_hook(layers_list, scope: str = "all", sink: int = 1,
         raise ValueError(f"scope must be 'all' or 'delta', got {scope!r}")
 
     def hook(cache, hop_index: int, inherited_len: int):
-        if not every_hop and hop_index != 0:
-            return cache
+        # Gate on CALL HISTORY, not `hop_index == 0`. run_latentmas always calls
+        # hooks in increasing hop order from 0, so in real relay use the two
+        # coincide -- but a test probing the hook directly at an arbitrary
+        # hop_index still gets "the first call trims", which is the property
+        # being expressed. Gating on hop_index instead makes a direct probe at
+        # hop_index=1 silently a no-op.
+        do_trim = every_hop or not hook.records
         layers = recalibrate(cache, hop_index) if recalibrate else layers_list
         before = max(int(k.shape[-2]) for k in cache.key_cache)
-        if scope == "all":
-            out = prepare_key_cache(cache, layers, sink=sink)
+        if do_trim:
+            if scope == "all":
+                out = prepare_key_cache(cache, layers, sink=sink)
+            else:
+                out = trim_delta(cache, layers, inherited_len, sink=sink)
         else:
-            out = trim_delta(cache, layers, inherited_len, sink=sink)
+            out = cache
+        # One record per CALL, trimmed or not. A pass-through hop at retention
+        # 1.0 is as real a fact about the run as a trimmed one, and Task 19
+        # reads this list as the evidence trail.
         hook.records.append({
             "hop": hop_index,
             "kept_layers": sorted(int(i) for i in layers),
@@ -4477,16 +4488,27 @@ git commit -m "test: integration sweep across scopes, ratios, and controls"
 
 ### Task 21: Multi-step generation over a ragged cache
 
-**Why this task exists.** Task 12 built `forward_with_ragged_cache`, which makes attention causal under a layer-trimmed cache — but only for a **single forward pass**. `run_pair` generates *text*, so it needs many steps, and it therefore still routes through the stock path. Every `top_layers < 1.0` KVComm run is consequently subject to D8's non-causality.
+**Why this task exists.** Task 12 built `forward_with_ragged_cache`, which makes attention causal under a layer-trimmed cache — but only for a **single forward pass**. Text generation needs many steps, so every path that generates still routes through the stock, non-causal path whenever `top_layers < 1.0`.
 
-That is the right choice for Phase 4: upstream produced its published table on the same non-causal path, so reproducing those numbers **requires** it. But it means the K1/K2 gates measure KVComm-as-published, not KVComm-as-intended, and the difference between the two is a result this project is uniquely positioned to report — no one else has measured it, because upstream's own `shift_back` path asserts at most two distinct cache lengths and is off by default.
+Two call sites are affected, and they are **not** equally excusable:
 
-**Sequencing:** run only after K1 and K2 have passed. Until then there is no baseline to compare a corrected path against.
+- **`run_pair` (KVComm reproduction).** Running non-causally here is arguably correct: upstream produced its published table on the same non-causal path, so reproducing those numbers requires it. But it means K1/K2 measure KVComm-as-published rather than KVComm-as-intended, and the gap between the two is a result this project is uniquely positioned to report — nobody else has, because upstream's own `shift_back` path asserts at most two distinct cache lengths and is off by default.
+- **`run_latentmas` (the integration, this project's actual contribution).** Here there is **no upstream to be faithful to**. The trim hook hands back a ragged cache, and every later forward in the relay — `generate_latent`'s prefill and latent steps, then the judger's generation — runs it non-causally. Since the integration is novel, that is simply wrong rather than faithful, and it compounds across three boundaries instead of one. **Any headline integration number produced on the stock path is not trustworthy.**
+
+So this task must cover both call sites. Confirmed at the `run_latentmas` site during Task 17.
+
+**Sequencing:** the `run_pair` half runs after K1/K2 pass, so there is a published-number baseline to compare against. The `run_latentmas` half must land **before** Task 20's sweep is treated as producing real results — or Task 20 must run both paths and report them separately, with the stock-path column labelled as non-causal.
 
 **Files:**
 - Create: `lkv/kvcomm/ragged_decode.py`
-- Modify: `lkv/kvcomm/pair.py` (a `causal_ragged: bool` switch on `run_pair`), `lkv/config.py` (`--causal_ragged`)
+- Modify: `lkv/kvcomm/pair.py` (a `causal_ragged` switch on `run_pair`), `lkv/latentmas.py` (same switch on `generate_latent` and the judger call), `lkv/config.py` (`--causal_ragged`)
 - Test: `tests/test_ragged_decode.py`
+
+The `lkv/latentmas.py` half is the harder one: `generate_latent` does a prefill
+plus N single-token latent steps over a cache that is ragged from the previous
+hop's trim, and the judger then generates text over it. Both need per-layer masks
+rebuilt as the cache grows, with trimmed layers growing from `sink` while retained
+layers grow from the full length.
 
 **Interfaces:**
 - Consumes: `build_per_layer_masks`, `prepare_key_cache` (Task 12); `pad_batch` (Task 3).
