@@ -9,6 +9,7 @@ import torch
 
 from lkv.config import RunConfig, parse_args
 from lkv.data import load_task
+from lkv.integrate import make_trim_hook
 from lkv.kvcomm.importance import select_layers
 from lkv.kvcomm.pair import calibrate, run_baseline, run_pair, run_skyline
 from lkv.latentmas import run_latentmas
@@ -18,7 +19,8 @@ from lkv.scoring import score_item
 
 def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
                  layer_retention: float | None = None,
-                 kept_layers: list[int] | None = None) -> dict:
+                 kept_layers: list[int] | None = None,
+                 hook_records: list[dict] | None = None) -> dict:
     n = len(items)
     if not (len(predictions) == len(per_item) == n):
         raise ValueError(
@@ -41,10 +43,21 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
         "hop_records_first_batch": hops,
         "total_sec": timings["total_sec"],
         "sec_per_item": (timings["total_sec"] / n) if n else 0.0,
-        # None for every system except kvcomm, where calibrate()+select_layers()
-        # ran once before the batch loop -- see main().
+        # None unless calibrate()+select_layers() ran before the batch loop --
+        # always for kvcomm, and for latentmas only when top_layers<1.0 built a
+        # trim hook. For kvcomm this is the static len(kept_layers)/n_layers
+        # ratio; for latentmas it is the MEAN of the trim hook's own per-hop
+        # `retention` (see hook_records below) -- a different quantity, since
+        # scope and every_hop both change how much of the cache a layer
+        # selection actually keeps. See main().
         "layer_retention": layer_retention,
         "kept_layers": kept_layers,
+        # Task 17's evidence trail: one entry per trim_hook call from the
+        # FIRST batch (see hop_records_first_batch's docstring above for why
+        # only the first batch -- cache lengths differ per batch since
+        # prompts differ in length, so this is one representative relay).
+        # Empty for every system/config that never built a trim hook.
+        "hook_records": hook_records if hook_records is not None else [],
     }
 
 
@@ -65,6 +78,11 @@ def main(argv=None) -> int:
 
     # kvcomm calibrates ONCE, at full retention, before any batch runs -- not
     # per batch. The resulting layer selection is then reused for every batch.
+    # latentmas does the same calibrate()+select_layers() step when
+    # top_layers<1.0 asks for a trim hook at its agent boundaries (Task 17) --
+    # kept_layers is the layer SELECTION either way; layer_retention's meaning
+    # differs per system and is finalised below the batch loop (see the field's
+    # docstring in build_record).
     layer_retention: float | None = None
     kept_layers: list[int] | None = None
     if cfg.system == "kvcomm":
@@ -72,10 +90,15 @@ def main(argv=None) -> int:
         kept_layers = select_layers(totals, cfg.top_layers, cfg.alpha, cfg.mu,
                                     cfg.sigma, cfg.random_selection, cfg.seed)
         layer_retention = len(kept_layers) / model.config.num_hidden_layers
+    elif cfg.system == "latentmas" and cfg.top_layers < 1.0:
+        totals = calibrate(model, tokenizer, items, cfg)
+        kept_layers = select_layers(totals, cfg.top_layers, cfg.alpha, cfg.mu,
+                                    cfg.sigma, cfg.random_selection, cfg.seed)
 
     predictions: list[str] = [""] * len(items)
     per_item: list[dict] = [None] * len(items)
     hops: list[dict] = []
+    hook_records: list[dict] = []
     started = time.time()
 
     for offset, batch in _batches(items, cfg.generate_bs):
@@ -86,7 +109,19 @@ def main(argv=None) -> int:
             # from the existing instance, so nothing can be dropped or
             # duplicated the way a hand-rolled asdict/dict-merge could.
             local_cfg = cfg if cfg.system == "latentmas" else replace(cfg, n_agents=1)
-            texts, batch_hops = run_latentmas(model, tokenizer, local_cfg, batch)
+            # A FRESH hook per batch: run_latentmas always starts each batch's
+            # relay from cache=None, so every_hop=False's "trim only the first
+            # boundary" must reset per batch too -- a hook shared across
+            # batches would only ever trim in the very first batch and
+            # silently pass every later batch through untouched.
+            trim_hook = (make_trim_hook(kept_layers, cfg.trim_scope,
+                                        every_hop=cfg.trim_every_hop)
+                        if cfg.system == "latentmas" and kept_layers is not None
+                        else None)
+            texts, batch_hops = run_latentmas(model, tokenizer, local_cfg, batch,
+                                              trim_hook=trim_hook)
+            if trim_hook is not None and offset == 0:
+                hook_records = trim_hook.records
         elif cfg.system == "kvcomm":
             texts = run_pair(model, model_b, tokenizer, cfg, batch, kept_layers)
         elif cfg.system == "skyline":
@@ -103,9 +138,17 @@ def main(argv=None) -> int:
             predictions[i] = text
             per_item[i] = {"i": i, "correct": bool(ok), "score": float(score)}
 
+    if hook_records:
+        # latentmas's own figure: the mean of what the trim hook actually kept
+        # at each boundary, not the static len(kept_layers)/n_layers ratio --
+        # scope ("all" vs "delta") and every_hop both change how much of the
+        # cache a given layer selection ends up retaining.
+        layer_retention = sum(r["retention"] for r in hook_records) / len(hook_records)
+
     record = build_record(cfg, items, predictions, per_item, hops,
                           {"total_sec": time.time() - started},
-                          layer_retention=layer_retention, kept_layers=kept_layers)
+                          layer_retention=layer_retention, kept_layers=kept_layers,
+                          hook_records=hook_records)
     payload = json.dumps(record, indent=2)
     if cfg.out_json:
         with open(cfg.out_json, "w") as fh:

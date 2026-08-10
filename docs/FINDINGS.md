@@ -116,6 +116,41 @@ decision to reproduce upstream's own uncorrected path on purpose (D8's
 consequence #2 above) -- before any such number is reported as a KVComm
 measurement rather than a known-non-causal baseline.
 
+### D8 — compliance gap continues into Task 17's LatentMAS trim hook. NOT YET CLOSED.
+
+Predicted by `task-14-report.md` ("`run_latentmas` has this exact same shape of
+limitation once Task 17 wires real KVComm trimming into it") and now confirmed.
+`lkv/integrate.py`'s `make_trim_hook` returns exactly the same kind of ragged
+`DynamicCache` as `prepare_key_cache`/`trim_delta` whenever `top_layers < 1.0`
+in either scope. `run_latentmas` (`lkv/latentmas.py`) hands that cache straight
+into `generate_latent`'s plain `model(...)` call for every later latent hop,
+and into `generate_text_batch` for the judger -- both the stock forward path,
+never `forward_with_ragged_cache`. This is the SAME gap as the section above,
+one call site deeper, and D8's own consequence #3 (recorded when
+`forward_with_ragged_cache` was built, before any integration existed) named it
+in advance: *"Any LatentMAS integration must use corrected per-layer masks,
+because the relay has three boundaries rather than one, so the error would
+compound."* It has not been built; the relay now has up to three boundaries at
+which this can compound, not KVComm's original one.
+
+`lkv/latentmas.py` cannot import `lkv/kvcomm/` (Task 17's own code-organization
+rule: `lkv/integrate.py` is the only module allowed to depend on both), so
+closing this gap is not a small edit inside the hook -- it needs
+`forward_with_ragged_cache` (currently one forward pass) extended into an
+autoregressive decode loop and threaded through `generate_latent`'s per-step
+calls and `generate_text_batch`'s judger call, the same new-infrastructure scope
+already flagged for `run_pair`/`receiver_logits` above, now inside the relay
+loop instead of a single hop.
+
+**Consequence.** Any Phase 5 sweep (Task 20) with `top_layers < 1.0`, in either
+`trim_scope`, is currently measuring the stock (non-causal) path at every
+boundary after the first trim -- not a corrected KVComm-in-LatentMAS
+measurement. `trim_scope="all"` vs `"delta"` and `every_hop` can still be
+compared against EACH OTHER on this shared, uncorrected footing, but neither
+should be reported as what a causally-correct trim would produce until this is
+resolved the same way the section above is resolved. `top_layers=1.0` (no trim
+built at all) is unaffected.
+
 ---
 
 ## Not yet measured
