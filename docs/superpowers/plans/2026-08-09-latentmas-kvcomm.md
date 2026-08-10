@@ -4470,3 +4470,75 @@ git commit -m "test: integration sweep across scopes, ratios, and controls"
 - **Reproduction runs use sampled decoding** (LatentMAS: `temperature=0.6`, `top_p=0.95`; KVComm: greedy, per its own code). **Internal comparisons use `--greedy`.** Never mixed inside one comparison.
 - **Paired tests only.** Every run writes `per_item` on a seeded slice, so McNemar applies.
 - **Benchmarks not used, and why.** AIME is unusable as a measurement instrument at n=30 (SE ≈ 8–9 points). HumanEval+ at n=164 is a weaker version of MBPP+. ARC and MedQA are near ceiling for these models, so trimming cannot be distinguished from noise.
+
+---
+
+## Phase 6 — the corrected-path measurement (added during implementation)
+
+### Task 21: Multi-step generation over a ragged cache
+
+**Why this task exists.** Task 12 built `forward_with_ragged_cache`, which makes attention causal under a layer-trimmed cache — but only for a **single forward pass**. `run_pair` generates *text*, so it needs many steps, and it therefore still routes through the stock path. Every `top_layers < 1.0` KVComm run is consequently subject to D8's non-causality.
+
+That is the right choice for Phase 4: upstream produced its published table on the same non-causal path, so reproducing those numbers **requires** it. But it means the K1/K2 gates measure KVComm-as-published, not KVComm-as-intended, and the difference between the two is a result this project is uniquely positioned to report — no one else has measured it, because upstream's own `shift_back` path asserts at most two distinct cache lengths and is off by default.
+
+**Sequencing:** run only after K1 and K2 have passed. Until then there is no baseline to compare a corrected path against.
+
+**Files:**
+- Create: `lkv/kvcomm/ragged_decode.py`
+- Modify: `lkv/kvcomm/pair.py` (a `causal_ragged: bool` switch on `run_pair`), `lkv/config.py` (`--causal_ragged`)
+- Test: `tests/test_ragged_decode.py`
+
+**Interfaces:**
+- Consumes: `build_per_layer_masks`, `prepare_key_cache` (Task 12); `pad_batch` (Task 3).
+- Produces: `generate_with_ragged_cache(model, tokenizer, input_ids, attention_mask, past_key_values, past_mask, max_new_tokens, greedy, temperature=0.6, top_p=0.95) -> list[str]`, signature-compatible with `generate_text_batch` so `run_pair` can switch on one flag.
+
+- [ ] **Step 1: Write the failing tests**
+
+Three properties, in increasing strength:
+
+```python
+def test_untrimmed_ragged_decode_matches_generate_text_batch(tiny_qwen3):
+    """With a FULL cache the two paths must agree exactly. If they do not, the
+    ragged loop is not a faithful decoder and its trimmed results mean nothing."""
+
+
+def test_trimmed_ragged_decode_is_causal(tiny_qwen3):
+    """Changing only the LAST prompt token must not move the FIRST generated
+    token's logits. The stock path drifts ~1.5-2.1e-01 here; this must be 0.0."""
+
+
+def test_ragged_decode_respects_a_padded_history(tiny_qwen3):
+    """Same D12 property as the single-forward path: a left-padded cached span
+    keeps its pad positions masked across every generated step, not just the
+    first."""
+```
+
+- [ ] **Step 2: Run to verify they fail**
+
+Run: `./.venv/bin/python -m pytest tests/test_ragged_decode.py -v`
+Expected: FAIL on the missing module.
+
+- [ ] **Step 3: Implement**
+
+The loop is a per-step version of `forward_with_ragged_cache`: at each step rebuild the per-layer masks for the current cache lengths, run the decoder layers with each layer's own mask and its own `cache_position`, take the last position's logits, pick the next token (greedy or sampled), and append. The two things that make this harder than the single-pass version are that the cache **grows** — so the masks must be rebuilt, not cached — and that the per-layer offsets diverge as it grows, because trimmed layers grow from `sink` while retained layers grow from the full context length.
+
+Read `transformers/models/qwen3/modeling_qwen3.py` at the installed 4.53.3 and match the real decoder-layer call, exactly as Task 12 did. Do not reuse Task 12's sketch from memory.
+
+Batching: `run_pair` runs batches of 8–16, so this must handle a batch with per-row EOS at different steps. Track a per-row finished flag and stop when all rows are done or `max_new_tokens` is reached.
+
+- [ ] **Step 4: Run to verify they pass**
+
+Run: `./.venv/bin/python -m pytest tests/test_ragged_decode.py -v && ./.venv/bin/python -m pytest -q`
+
+The first test is the load-bearing one: if the untrimmed case does not match `generate_text_batch` exactly, stop and report rather than proceeding.
+
+- [ ] **Step 5: Measure the gap and commit**
+
+Re-run the K1 Countries conditions at 0.3/0.5/0.7 with `--causal_ragged`, and record in `docs/FINDINGS.md` a table of `ratio | stock (non-causal) | corrected | delta`, against the published 0.51/0.62/0.62.
+
+State the interpretation plainly, whichever way it falls. If the corrected path scores **higher**, KVComm's published numbers understate the method and the bug cost them accuracy. If it scores **lower**, their numbers depend on the bug, which is a more uncomfortable finding and must be reported as such rather than buried. If the two are within noise, say that — it would mean D8 is real but immaterial at these retention ratios, which is also worth knowing.
+
+```bash
+git add lkv/kvcomm/ragged_decode.py lkv/kvcomm/pair.py lkv/config.py tests/test_ragged_decode.py docs/FINDINGS.md
+git commit -m "feat: causal multi-step decoding over a ragged cache; measure the D8 gap"
+```
