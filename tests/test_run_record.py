@@ -1,5 +1,6 @@
 import json
 
+import pytest
 import torch
 from transformers import DynamicCache
 
@@ -23,6 +24,17 @@ def test_record_has_per_item_and_both_metrics():
     assert rec["per_item"] == per_item
     assert rec["sec_per_item"] == 1.0
     assert rec["latent_steps"] == 40 and rec["greedy"] is True
+    assert rec["ragged_path"] == "n/a", "default must be n/a, not silently absent"
+
+
+def test_ragged_path_records_stock_noncausal_when_the_caller_says_it_trimmed():
+    """build_record itself is a dumb reporter for this field -- main() decides
+    what to pass. This just pins that build_record actually writes the value
+    through rather than always defaulting to 'n/a'."""
+    per_item = [{"i": 0, "correct": True, "score": 1.0}]
+    rec = build_record(_cfg(), items=[{}], predictions=["a"], per_item=per_item,
+                       hops=[], timings={"total_sec": 1.0}, ragged_path="stock-noncausal")
+    assert rec["ragged_path"] == "stock-noncausal"
 
 
 def test_record_refuses_mismatched_lengths():
@@ -100,6 +112,51 @@ def test_main_keeps_per_item_aligned_across_batch_boundaries(monkeypatch, tmp_pa
             f"item {k}'s own designed outcome did not land at position {k} -- "
             "batch offset arithmetic misaligned per_item"
         )
+
+
+def test_projector_is_built_once_and_shared_across_batches(monkeypatch, tmp_path):
+    """Finding 2(a) regression.
+
+    run_latentmas used to be called without projector=, so
+    lkv/latentmas.py built a FRESH LatentProjector every batch -- and a fresh
+    projector's _ensure() rebuilds the realign matrix (or the target-norm-only
+    path) on its own first use, once per batch rather than once for the whole
+    run. At Qwen3-8B the full build is a multi-GB transient (two fp32
+    embedding copies plus a 4096x4096 solve); paying it every batch inflates
+    peak_mem_bytes and sec_per_item identically across every latentmas
+    condition, swamping the differential those metrics exist to show. main()
+    must build the projector ONCE, before the batch loop, and pass that SAME
+    object into every run_latentmas call.
+    """
+    items = [{"gold": "0"}, {"gold": "0"}, {"gold": "0"}]  # generate_bs=1 -> 3 batches
+    seen_projectors = []
+
+    def fake_load_task(task, max_samples, seed):
+        return items
+
+    def fake_load_model(model_name, device):
+        return object(), object()
+
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+        seen_projectors.append(projector)
+        return ["\\boxed{0}" for _ in batch], []
+
+    monkeypatch.setattr("lkv.run.load_task", fake_load_task)
+    monkeypatch.setattr("lkv.run.load_model", fake_load_model)
+    monkeypatch.setattr("lkv.run.run_latentmas", fake_run_latentmas)
+
+    out = tmp_path / "out.json"
+    argv = ["--system", "latentmas", "--task", "gsm8k", "--model_name", "Qwen/Qwen3-8B",
+            "--latent_steps", "1", "--generate_bs", "1", "--device", "cpu", "--greedy",
+            "--out_json", str(out)]
+
+    assert main(argv) == 0
+    assert len(seen_projectors) == 3
+    assert all(p is not None for p in seen_projectors), "run_latentmas must receive a real projector"
+    assert seen_projectors[0] is seen_projectors[1] is seen_projectors[2], (
+        "main() must build ONE projector before the batch loop and reuse it "
+        "across every batch, not build a fresh one per batch"
+    )
 
 
 def test_main_kvcomm_calibrates_once_and_reuses_model_b(monkeypatch, tmp_path):
@@ -226,3 +283,92 @@ def test_main_aggregates_cache_stats_across_batches_not_just_the_first(monkeypat
     # 1 layer, K+V, float32 (4 bytes/elem), numel == n_pos -> 8 bytes/position.
     assert record["cache_bytes_at_final_hop_mean"] == 8 * (5 + 9) / 2
     assert record["peak_mem_bytes"] == 0, "PeakMemory must be a safe no-op on cpu"
+    # Finding 4: a latentmas run that built no trim hook (top_layers==1.0, the
+    # reference every other condition's ratio divides by) is full retention,
+    # a known fact, not an unknown -- the analyzer's `d.get("layer_retention",
+    # 1.0)` would TypeError on a literal None here, since .get's default only
+    # covers a MISSING key and this key is always present.
+    assert record["layer_retention"] == 1.0
+    assert record["ragged_path"] == "n/a", "no kept_layers means nothing was ever trimmed"
+
+
+def test_layer_retention_is_the_all_batch_mean_not_the_first_batch(monkeypatch, tmp_path):
+    """Finding 1 regression.
+
+    `hook_records` is (deliberately, per its own docstring) captured from the
+    FIRST batch only -- cache lengths differ per batch since prompt lengths
+    differ. `layer_retention` used to be computed as
+    `sum(r["retention"] for r in hook_records) / len(hook_records)`, i.e. the
+    mean of that SAME first-batch-only list wearing a run-level name. This is
+    the sibling fix to hop_records -> hop_records_first_batch (Task 9): here
+    the run-level figure must be an accumulated sum/count across EVERY
+    batch's own hook, not a read of the first batch's inspection copy.
+
+    Two batches see genuinely different retention by construction: the hook
+    trims a cache to `sink` positions per unselected layer, so varying the
+    untrimmed length the hook is handed (10 vs 40) changes what fraction
+    `sink` represents, without changing which layers are selected.
+    """
+    import types
+
+    from lkv.kvcomm.importance import select_layers
+
+    n_layers = 4
+    totals = {i: [1.0] for i in range(n_layers)}
+    kept_layers_expected = select_layers(totals, top_layers=0.5, alpha=1.0,
+                                         mu=0.5, sigma=10.0)
+    kept = set(kept_layers_expected) | {0}  # layer 0 is always retained too
+
+    def _expected_retention(full_len):
+        lengths = [full_len if i in kept else 1 for i in range(n_layers)]
+        return sum(lengths) / (max(lengths) * n_layers)
+
+    ret_batch1, ret_batch2 = _expected_retention(10), _expected_retention(40)
+    assert ret_batch1 != ret_batch2, "test setup must give genuinely different per-batch retentions"
+
+    items = [{"gold": "0"}, {"gold": "0"}]  # generate_bs=1 -> 2 batches
+    full_lens = [10, 40]
+
+    def fake_load_task(task, max_samples, seed):
+        return items
+
+    def fake_load_model(model_name, device):
+        model = types.SimpleNamespace(config=types.SimpleNamespace(num_hidden_layers=n_layers))
+        return model, object()
+
+    def fake_calibrate_relay(model, tokenizer, cfg, items_):
+        return totals
+
+    def _mk_relay_cache(full_len):
+        cache = DynamicCache()
+        for i in range(n_layers):
+            cache.update(torch.zeros(1, 1, full_len, 1), torch.zeros(1, 1, full_len, 1), i)
+        return cache
+
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+        full_len = full_lens.pop(0)
+        if trim_hook is not None:
+            trim_hook(_mk_relay_cache(full_len), 0, 0)
+        return ["\\boxed{0}" for _ in batch], []
+
+    monkeypatch.setattr("lkv.run.load_task", fake_load_task)
+    monkeypatch.setattr("lkv.run.load_model", fake_load_model)
+    monkeypatch.setattr("lkv.run.calibrate_relay", fake_calibrate_relay)
+    monkeypatch.setattr("lkv.run.run_latentmas", fake_run_latentmas)
+
+    out = tmp_path / "out.json"
+    argv = ["--system", "latentmas", "--task", "gsm8k", "--model_name", "Qwen/Qwen3-8B",
+            "--latent_steps", "1", "--generate_bs", "1", "--device", "cpu", "--greedy",
+            "--top_layers", "0.5", "--alpha", "1.0", "--calib_size", "1",
+            "--out_json", str(out)]
+
+    assert main(argv) == 0
+    record = json.loads(out.read_text())
+
+    assert record["kept_layers"] == kept_layers_expected
+    all_batch_mean = (ret_batch1 + ret_batch2) / 2
+    assert record["layer_retention"] == pytest.approx(all_batch_mean)
+    assert record["layer_retention"] != pytest.approx(ret_batch1), (
+        "layer_retention must not silently equal only the first batch's retention"
+    )
+    assert record["ragged_path"] == "stock-noncausal"

@@ -134,8 +134,10 @@ compound."* It has not been built; the relay now has up to three boundaries at
 which this can compound, not KVComm's original one.
 
 `lkv/latentmas.py` cannot import `lkv/kvcomm/` (Task 17's own code-organization
-rule: `lkv/integrate.py` is the only module allowed to depend on both), so
-closing this gap is not a small edit inside the hook.
+rule: `lkv/integrate.py` was meant to be the only module allowed to depend on
+both -- that is no longer accurate, since `lkv/relay_calib.py` also imports
+`lkv/kvcomm` (`attention_from_stash`, `layer_importance`, the tracer) alongside
+`lkv/latentmas`), so closing this gap is not a small edit inside the hook.
 
 **This is not the same gap Task 21 (Phase 6, already planned) closes.** Task 21
 builds `generate_with_ragged_cache` and wires it into `run_pair` via a
@@ -158,20 +160,6 @@ EACH OTHER on this shared, uncorrected footing, but neither should be reported
 as what a causally-correct trim would produce until a Task 21-equivalent
 extension exists for `run_latentmas`. `top_layers=1.0` (no trim built at all)
 is unaffected.
-
----
-
-## Not yet measured
-
-Everything below needs GPU and is not yet known. Do not cite any number for these until it appears in this file.
-
-- L1 — GSM8K 8B latent-step sweep against the published 93.8 / 81.1.
-- L2 — MBPP+ 8B against 74.6 / 64.8, and 4B / 14B GSM8K.
-- K1 — KVComm Countries against 0.00 / 0.62 / 0.51 / 0.62 / 0.62, plus the D10 metric decision (mean F1 versus fraction with F1 > 0.5).
-- K2 — KVComm HotpotQA and Tipsheets.
-- Phase 5 — the integration sweep across `trim_scope` and retention ratio.
-
-The correct `latent_steps` value is not recorded anywhere in the upstream repo: its argparse default is `0` (degenerate — the relay cache is discarded), and the two shipped example logs show `0` and `10`, neither of which matches the table cell it accompanies. It has to be searched over `[0, 80]`.
 
 ### D12 — a cached span's mask must be the real historical mask. CONFIRMED.
 
@@ -258,3 +246,17 @@ hard-coding one family's import path would break the other.
 
 Recorded because this class of bug is invisible downstream: nothing about a
 wrongly-rotated query produces an error, only worse numbers.
+
+---
+
+## Not yet measured
+
+Everything below needs GPU and is not yet known. Do not cite any number for these until it appears in this file.
+
+- L1 — GSM8K 8B latent-step sweep against the published 93.8 / 81.1.
+- L2 — MBPP+ 8B against 74.6 / 64.8, and 4B / 14B GSM8K.
+- K1 — KVComm Countries against 0.00 / 0.62 / 0.51 / 0.62 / 0.62, plus the D10 metric decision (mean F1 versus fraction with F1 > 0.5).
+- K2 — KVComm HotpotQA and Tipsheets.
+- Phase 5 — the integration sweep across `trim_scope` and retention ratio.
+
+The correct `latent_steps` value is not recorded anywhere in the upstream repo: its argparse default is `0` (degenerate — the relay cache is discarded), and the two shipped example logs show `0` and `10`, neither of which matches the table cell it accompanies. It has to be searched over `[0, 80]`.

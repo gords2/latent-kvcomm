@@ -67,7 +67,9 @@ def test_stock_path_is_NOT_causal_when_trimmed(tiny_qwen3):
 
 def test_per_layer_masks_are_causal_and_correctly_sized(tiny_qwen3):
     cache = prepare_key_cache(_prefill(tiny_qwen3, 12), layers_list=[2])
-    masks = build_per_layer_masks(cache, q_len=4, device="cpu", dtype=torch.float32)
+    past_mask = torch.ones(1, 12, dtype=torch.long)  # batch 1, no padding
+    masks = build_per_layer_masks(cache, q_len=4, device="cpu", dtype=torch.float32,
+                                  past_mask=past_mask)
     assert len(masks) == 4
     for i, m in enumerate(masks):
         kv_len = int(cache.key_cache[i].shape[-2]) + 4
@@ -87,21 +89,58 @@ def test_fixed_forward_is_causal(tiny_qwen3):
     from lkv.kvcomm.trim import forward_with_ragged_cache
 
     base = _prefill(tiny_qwen3, 12)
+    past_mask = torch.ones(1, 12, dtype=torch.long)  # batch 1, no padding
     outs = []
     for q in (torch.tensor([[11, 12, 13, 14]]), torch.tensor([[11, 12, 13, 99]])):
         cache = prepare_key_cache(base, layers_list=[2])
         with torch.no_grad():
-            outs.append(forward_with_ragged_cache(tiny_qwen3, q, cache))
+            outs.append(forward_with_ragged_cache(tiny_qwen3, q, cache, past_mask))
     drift = (outs[0][0, 0] - outs[1][0, 0]).abs().max().item()
     print(f"D9 MEASUREMENT: forward_with_ragged_cache drift = {drift:.3e}")
     assert drift == 0.0, f"future token leaked into position 0: drift={drift:.3e}"
 
 
-def test_forward_with_ragged_cache_matches_normal_forward_when_untrimmed(tiny_qwen3):
+def test_per_layer_masks_are_batch_aware_and_honour_padding(tiny_qwen3):
+    """The one place in the branch that used to synthesize a mask over a cached
+    span instead of threading the real one (docs/FINDINGS.md's ragged-cache
+    D8-family note). build_per_layer_masks used to hard-code batch=1 and write
+    an unconditional 0 (fully visible) for every historical column regardless
+    of `past_mask` -- so a left-padded ragged batch (which pad_batch always
+    produces) would make every pad key/value attendable once handed to sdpa,
+    which broadcasts a batch-1 mask over any batch size. Batch 2 here, with
+    row 1 left-padded by 3 positions, is the case that used to be invisible.
+    """
+    ids = torch.randint(1, 200, (2, 12))
+    with torch.no_grad():
+        cache = tiny_qwen3(ids, use_cache=True).past_key_values
+    all_layers = list(range(tiny_qwen3.config.num_hidden_layers))
+    untrimmed = prepare_key_cache(cache, all_layers)  # every layer kept whole -> length 12
+
+    past_mask = torch.ones(2, 12, dtype=torch.long)
+    past_mask[1, :3] = 0  # row 1's leading 3 positions are left-pad
+
+    masks = build_per_layer_masks(untrimmed, q_len=4, device="cpu", dtype=torch.float32,
+                                  past_mask=past_mask)
+    for m in masks:
+        assert m.shape[0] == 2, "mask must carry the cache's real batch size, not a hard-coded 1"
+        # row 0: no padding anywhere in its history -- every historical column visible.
+        assert (m[0, 0, :, :12] == 0).all()
+        # row 1: the padded columns are real -inf, the real columns stay visible.
+        assert torch.isinf(m[1, 0, :, :3]).all() and (m[1, 0, :, :3] < 0).all()
+        assert (m[1, 0, :, 3:12] == 0).all()
+
+
+def test_forward_with_ragged_cache_matches_normal_forward_when_untrimmed_batch1_nopad(tiny_qwen3):
     """Self-review check (not in the brief): forward_with_ragged_cache is only a
     valid decoder reimplementation if, absent any trimming, it reproduces the
     exact logits of the model's own forward. A zero-drift result through a
     reimplementation that silently computes something else would be meaningless.
+
+    This only establishes the equivalence at batch 1 with no padding in the
+    historical span (past_mask is all-ones below) -- it says nothing about
+    forward_with_ragged_cache's behaviour at batch > 1 or with a padded
+    history; test_per_layer_masks_are_batch_aware_and_honour_padding above
+    covers that at the mask level.
     """
     from lkv.kvcomm.trim import forward_with_ragged_cache
 
@@ -111,8 +150,9 @@ def test_forward_with_ragged_cache_matches_normal_forward_when_untrimmed(tiny_qw
     cache_for_stock = prepare_key_cache(base, all_layers)
 
     q = torch.tensor([[11, 12, 13, 14]])
+    past_mask = torch.ones(1, 12, dtype=torch.long)
     with torch.no_grad():
-        custom_logits = forward_with_ragged_cache(tiny_qwen3, q, cache_for_custom)
+        custom_logits = forward_with_ragged_cache(tiny_qwen3, q, cache_for_custom, past_mask)
 
         mask = torch.ones(1, 12 + 4, dtype=torch.long)
         stock_logits = tiny_qwen3(

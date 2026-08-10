@@ -4466,7 +4466,7 @@ for name, d in runs.items():
     b = d.get("cache_bytes_at_final_hop_mean") or 0
     a = d.get("attention_positions_at_final_hop_mean") or 0
     print(f"{name:34} {d['accuracy']:7.4f} {d['accuracy'] - full['accuracy']:+7.4f} "
-          f"{d.get('layer_retention', 1.0):9.4f} "
+          f"{(d.get('layer_retention') or 1.0):9.4f} "
           f"{(b / base_bytes if base_bytes else 1.0):9.4f} "
           f"{(a / base_attn if base_attn else 1.0):8.4f} "
           f"{d['sec_per_item']:7.2f} {p:9.4f}")

@@ -121,8 +121,14 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
                 past_key_values=cache,   # D2: never nulled
                 past_mask=run_mask,      # the relay's real mask, not ones
             )
+            # generate() mutates `cache` IN PLACE (every DynamicCache.update()
+            # call during decoding appends to it), so re-reading past_length
+            # here reports the cache's real post-generation length -- unlike
+            # the pre-fix version, which wrote `before` again under the
+            # `positions_after` key and reported entry state as if nothing
+            # had grown.
             hops.append({"hop": hop_index, "role": role, "latent_steps": 0,
-                         "positions_before": before, "positions_after": before})
+                         "positions_before": before, "positions_after": past_length(cache)})
             continue
 
         cache, run_mask, _ = generate_latent(

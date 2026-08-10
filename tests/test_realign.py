@@ -50,6 +50,26 @@ def test_renorm_alone_rescales_but_preserves_direction(tiny_qwen3):
     assert torch.allclose(cos, torch.ones(3), atol=1e-5)
 
 
+def test_renorm_alone_never_builds_the_full_realign_matrix(tiny_qwen3, monkeypatch):
+    """Finding 2(b) regression: LatentProjector's _ensure() used to build the
+    full [D, D] gram + solve (build_realign_matrix) whenever EITHER realign or
+    renorm was True, even though renorm alone never reads W (see __call__
+    below). At Qwen3-8B that solve, plus the two fp32 embedding copies it
+    needs, are a multi-GB, multi-second transient every renorm-only run paid
+    for with nothing to show for it. realign=False must route through the
+    cheaper target-norm-only path (compute_target_norm) instead.
+    """
+    def _boom(*a, **kw):
+        raise AssertionError("build_realign_matrix must not run when realign=False")
+    monkeypatch.setattr("lkv.realign.build_realign_matrix", _boom)
+
+    proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
+    h = torch.randn(2, tiny_qwen3.config.hidden_size)
+    out = proj(h)
+    assert out.shape == h.shape
+    assert proj.builds == 0, "builds counts the [D, D] solve specifically, which never ran here"
+
+
 def test_realign_alone_changes_direction(tiny_qwen3):
     proj = LatentProjector(tiny_qwen3, realign=True, renorm=False, device="cpu")
     h = torch.randn(3, tiny_qwen3.config.hidden_size)

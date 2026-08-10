@@ -11,6 +11,8 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass, field
 
+from lkv.prompts import ROLES
+
 MODEL_CHOICES = [
     "Qwen/Qwen3-4B",
     "Qwen/Qwen3-8B",
@@ -22,6 +24,13 @@ MODEL_CHOICES = [
 ]
 
 TASK_CHOICES = ["gsm8k", "mbppplus", "hotpotqa", "countries", "tipsheets"]
+
+# gsm8k/mbppplus items carry only question/gold (lkv/data/gsm8k.py,
+# lkv/data/mbppplus.py) -- no instruction/context. --calib_source pair's
+# kvcomm_sender_prompt(it["instruction"], it["context"]) (lkv/kvcomm/pair.py)
+# needs both, so pairing it with either task is a KeyError waiting to happen
+# at run time, not argument-parse time. See parse_args.
+_TASKS_WITHOUT_CONTEXT = {"gsm8k", "mbppplus"}
 
 # Paper B.2: alpha = 1 for the Llama family, 0.8 for Qwen and Falcon.
 _ALPHA_BY_FAMILY = {"qwen": 0.8, "falcon": 0.8, "llama": 1.0}
@@ -124,6 +133,25 @@ def parse_args(argv: list[str] | None = None) -> RunConfig:
                 "(a 0 default silently disables the relay; see D2)")
     if ns.latent_steps is None:
         ns.latent_steps = 0
+
+    if ns.calib_source == "pair" and ns.task in _TASKS_WITHOUT_CONTEXT:
+        p.error(
+            f"--calib_source pair cannot run on --task {ns.task}: it calibrates "
+            "via kvcomm_sender_prompt(instruction, context), and "
+            f"{sorted(_TASKS_WITHOUT_CONTEXT)} items carry neither field "
+            "(lkv/data/gsm8k.py, lkv/data/mbppplus.py emit only "
+            "question/gold). Tasks with instruction/context are "
+            "hotpotqa, countries, and tipsheets. Use --calib_source relay "
+            "instead, or pick one of those tasks."
+        )
+
+    if ns.n_agents > len(ROLES):
+        p.error(
+            f"--n_agents {ns.n_agents} exceeds the {len(ROLES)} defined roles "
+            f"{ROLES} -- run_latentmas would reuse 'judger' twice and the relay "
+            "mask/cache shapes would desync (see lkv/decode.py's ValueError on "
+            "past_mask shape). Pick --n_agents <= 4."
+        )
 
     kw = vars(ns)
     if not kw["model_b"]:

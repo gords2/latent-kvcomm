@@ -14,6 +14,22 @@ from __future__ import annotations
 import torch
 
 
+def compute_target_norm(model, device, dtype: torch.dtype = torch.float32) -> torch.Tensor:
+    """The mean L2 row norm of the INPUT embedding alone (models.py:177).
+
+    Split out of build_realign_matrix so the renorm-only path (renorm=True,
+    realign=False) never has to pay for the [D, D] gram + solve: target_norm
+    does not depend on the output embedding, W, or the solve at all, so
+    computing it standalone is both cheaper and simpler to audit than
+    discarding half of build_realign_matrix's return value.
+    """
+    input_embeds = model.get_input_embeddings()
+    if input_embeds is None:
+        raise RuntimeError("cannot compute target_norm: input embedding not accessible")
+    e_in = input_embeds.weight.detach().to(device=device, dtype=dtype)
+    return e_in.norm(dim=1).mean().detach()
+
+
 def build_realign_matrix(model, device, dtype: torch.dtype = torch.float32):
     input_embeds = model.get_input_embeddings()
     output_embeds = model.get_output_embeddings() or getattr(model, "lm_head", None)
@@ -44,9 +60,19 @@ class LatentProjector:
         self.builds = 0
 
     def _ensure(self):
-        if self._w is None and (self.realign or self.renorm):
+        if self._target_norm is not None or not (self.realign or self.renorm):
+            return
+        if self.realign:
+            # Needs W, so pay for the full [D, D] gram + solve -- there is no
+            # cheaper way to get a matmul.
             self._w, self._target_norm = build_realign_matrix(self._model, self.device)
             self.builds += 1
+        else:
+            # renorm alone never reads self._w (see __call__), so skip the
+            # gram + solve entirely: at Qwen3-8B that solve plus the two fp32
+            # embedding copies it needs are a multi-GB, multi-second transient
+            # this configuration has no use for.
+            self._target_norm = compute_target_norm(self._model, self.device)
 
     def __call__(self, hidden: torch.Tensor) -> torch.Tensor:
         if not self.realign and not self.renorm:

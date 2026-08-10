@@ -84,6 +84,55 @@ def test_no_renorm_latent_flag_disables_renormalization():
     assert cfg.renorm_latent is False
 
 
+def test_calib_source_pair_rejects_tasks_without_instruction_context():
+    """Finding 3: --calib_source pair calibrates via
+    kvcomm_sender_prompt(instruction, context) (lkv/kvcomm/pair.py), but
+    gsm8k/mbppplus items carry only question/gold (lkv/data/gsm8k.py,
+    lkv/data/mbppplus.py) -- a KeyError at run time, not argument-parse time.
+    The sweep in the plan schedules exactly this combination with
+    TASK=mbppplus; catching it here means the run dies loudly up front
+    instead of the sweep script (set -uo pipefail, no -e) silently dropping
+    the control from the results table.
+    """
+    for task in ("gsm8k", "mbppplus"):
+        with pytest.raises(SystemExit):
+            parse_args(["--system", "latentmas", "--task", task,
+                        "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40",
+                        "--top_layers", "0.5", "--calib_source", "pair"])
+
+    # The tasks that DO carry instruction/context must still be accepted.
+    for task in ("hotpotqa", "countries"):
+        cfg = parse_args(["--system", "latentmas", "--task", task,
+                          "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40",
+                          "--top_layers", "0.5", "--calib_source", "pair"])
+        assert cfg.calib_source == "pair"
+
+    # --calib_source relay (the default) must remain unaffected on either task.
+    cfg = parse_args(["--system", "latentmas", "--task", "gsm8k",
+                      "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40",
+                      "--top_layers", "0.5"])
+    assert cfg.calib_source == "relay"
+
+
+def test_n_agents_over_the_defined_roles_is_rejected():
+    """Fix-now item: at n_agents=5 the run used to die deep inside
+    lkv/decode.py with an opaque `ValueError: past_mask has shape (1, 15),
+    expected (1, 20)` -- correct behaviour (run_latentmas would reuse
+    'judger' twice, per lkv/prompts.py's 4-role ROLES tuple), but a confusing
+    way to learn you asked for five roles when only four are defined.
+    """
+    with pytest.raises(SystemExit):
+        parse_args(["--system", "latentmas", "--task", "gsm8k",
+                    "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40",
+                    "--n_agents", "5"])
+
+    # 4 (the default, and the max) must still be accepted.
+    cfg = parse_args(["--system", "latentmas", "--task", "gsm8k",
+                      "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "40",
+                      "--n_agents", "4"])
+    assert cfg.n_agents == 4
+
+
 def test_realign_and_no_renorm_latent_compose():
     """The four combinations of realign and renorm_latent are the ablation grid Task 5 sweeps."""
     cfg = parse_args(["--system", "kvcomm", "--task", "countries",

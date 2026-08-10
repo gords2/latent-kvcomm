@@ -68,7 +68,22 @@ def trim_delta(cache, layers_list, inherited_len: int, sink: int = 1):
             out.update(k, v, i)
         else:
             layer_len = int(k.shape[-2])
-            cut = min(layer_len, max(sink, layer_len - new_seg + sink))
+            cut = layer_len - new_seg + sink
+            if not (0 <= new_seg <= layer_len and sink <= cut <= layer_len):
+                # Under the growth invariant this branch is unreachable: every
+                # layer grows by the same `new_seg` positions each hop (see the
+                # docstring above), so a layer's own current length can never
+                # be shorter than the segment just added to it, and `cut`
+                # always lands between `sink` and the layer's own length. The
+                # removed `min(layer_len, max(sink, ...))` clamps would have
+                # silently substituted `sink` (or `layer_len`) here instead of
+                # raising -- the same silent-clamp class the per-layer cut fix
+                # above already removed once (see the FOUND IN REVIEW note).
+                raise ValueError(
+                    f"layer {i}: new_seg={new_seg}, cut={cut} outside "
+                    f"[{sink}, {layer_len}] -- the growth invariant does not "
+                    "hold for this cache/hop."
+                )
             out.update(k[:, :, :cut, :], v[:, :, :cut, :], i)
     return out
 

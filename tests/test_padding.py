@@ -199,11 +199,13 @@ def test_cached_generation_matches_per_row_references_in_a_ragged_batch(tiny_qwe
 
     test_batched_greedy_matches_unbatched already proves batch-invariance for
     the no-cache path; this is its analogue across the cache boundary. Row 0
-    has an unpadded prefix but a padded prompt; row 1 has a padded prefix but
-    an unpadded prompt -- so both the past_mask side and the ordinary
-    attention_mask side are exercised with genuine ragged padding, and in
-    opposite rows, so a bug that only affects one row position (e.g. reusing
-    row 0's mask for the whole batch) cannot hide behind the other row.
+    has no padding at all (its prefix and prompt are exactly the batch's max
+    width); row 1 pads on BOTH the prefix and the prompt -- so both the
+    past_mask side and the ordinary attention_mask side are exercised with
+    genuine ragged padding, and a bug that only affects one row position
+    (e.g. reusing row 0's mask for the whole batch) cannot hide behind the
+    other row, since row 1 alone carries every kind of padding this test
+    checks for.
 
     The oracle for each row is a batch-of-one, no-cache run over that row's
     own fully unpadded sequence -- untouched by this function's batching or

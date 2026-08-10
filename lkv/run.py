@@ -50,7 +50,8 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
                  peak_mem_bytes: int = 0,
                  cache_bytes_at_final_hop_mean: float = 0.0,
                  attention_positions_at_final_hop_mean: float = 0.0,
-                 cache_stat_batches: int = 0) -> dict:
+                 cache_stat_batches: int = 0,
+                 ragged_path: str = "n/a") -> dict:
     n = len(items)
     if not (len(predictions) == len(per_item) == n):
         raise ValueError(
@@ -106,6 +107,14 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
         # reader (and Task 20) tell "averaged over 40 batches" apart from
         # "averaged over 1", which the mean alone cannot.
         "cache_stat_batches": cache_stat_batches,
+        # Travels with the data rather than living only in docs/FINDINGS.md:
+        # every top_layers<1.0 relay run measures non-causal attention at
+        # every boundary after the first trim (D8, the LatentMAS-trim-hook
+        # section) because run_latentmas hands the trimmed, ragged cache to
+        # the stock forward path, not forward_with_ragged_cache. A reader
+        # holding only this JSON file has no way to know that unless it is
+        # recorded here. "n/a" for any run that never trimmed at all.
+        "ragged_path": ragged_path,
     }
 
 
@@ -162,6 +171,25 @@ def main(argv=None) -> int:
     cache_byte_total = 0
     position_total = 0
     cache_stat_batches = 0
+    # layer_retention (latentmas branch) is likewise a mean over EVERY batch's
+    # hook, not just the first -- see the field's docstring in build_record
+    # and the retention_sum/retention_count accumulation below. hook_records
+    # itself stays first-batch-only (see its own docstring); this is the
+    # separate run-level aggregate hop_records_first_batch's sibling field
+    # `hop_records` was already fixed to have.
+    retention_sum = 0.0
+    retention_count = 0
+
+    # Built ONCE, before the batch loop, and reused for every batch -- not
+    # rebuilt per batch. LatentProjector lazily builds its [D, D] realign
+    # matrix (and/or the cheaper target-norm-only path) on first use and
+    # caches it; a fresh projector per batch would rebuild it every batch,
+    # which is exactly the transient this shared instance avoids (see
+    # lkv/realign.py and the projector= parameter on run_latentmas).
+    projector = None
+    if cfg.system in ("latentmas", "single"):
+        from lkv.realign import LatentProjector
+        projector = LatentProjector(model, cfg.realign, cfg.renorm_latent, cfg.device)
 
     with Timer() as timer, PeakMemory(cfg.device) as mem:
         for offset, batch in _batches(items, cfg.generate_bs):
@@ -193,9 +221,17 @@ def main(argv=None) -> int:
                 trim_hook = (_measuring_hook(base_hook, batch_cache_stats)
                             if cfg.system == "latentmas" else None)
                 texts, batch_hops = run_latentmas(model, tokenizer, local_cfg, batch,
-                                                  trim_hook=trim_hook)
-                if base_hook is not None and offset == 0:
-                    hook_records = base_hook.records
+                                                  trim_hook=trim_hook, projector=projector)
+                if base_hook is not None:
+                    if offset == 0:
+                        # First-batch-only inspection copy -- see
+                        # hook_records's docstring in build_record. The
+                        # run-level figure is retention_sum/retention_count
+                        # below, accumulated from EVERY batch's hook, not
+                        # just this one.
+                        hook_records = base_hook.records
+                    retention_sum += sum(r["retention"] for r in base_hook.records)
+                    retention_count += len(base_hook.records)
                 if batch_cache_stats:
                     cache_byte_total += batch_cache_stats["bytes"]
                     position_total += batch_cache_stats["positions"]
@@ -216,12 +252,34 @@ def main(argv=None) -> int:
                 predictions[i] = text
                 per_item[i] = {"i": i, "correct": bool(ok), "score": float(score)}
 
-    if hook_records:
+    if retention_count:
         # latentmas's own figure: the mean of what the trim hook actually kept
-        # at each boundary, not the static len(kept_layers)/n_layers ratio --
-        # scope ("all" vs "delta") and every_hop both change how much of the
-        # cache a given layer selection ends up retaining.
-        layer_retention = sum(r["retention"] for r in hook_records) / len(hook_records)
+        # at each boundary, ACROSS EVERY BATCH -- not the static
+        # len(kept_layers)/n_layers ratio (scope "all" vs "delta" and
+        # every_hop both change how much of the cache a given layer selection
+        # ends up retaining), and not just the first batch's hook_records
+        # either (cache lengths, and therefore retention, can differ batch to
+        # batch since prompt lengths differ -- the same reason
+        # cache_bytes_at_final_hop_mean above is accumulated rather than read
+        # off one batch).
+        layer_retention = retention_sum / retention_count
+    elif cfg.system == "latentmas" and layer_retention is None:
+        # No trim hook ever ran for this latentmas run (top_layers==1.0, or a
+        # degenerate n_agents==1 with no boundary to trim at) -- that is full
+        # retention, a known fact about the run, not an unknown. None stays
+        # reserved for systems with no relay/trim concept at all (single,
+        # skyline, baseline).
+        layer_retention = 1.0
+
+    # See build_record's ragged_path docstring: honest only when a real
+    # layer selection (kept_layers) was actually used to trim a cache below
+    # top_layers==1.0 -- kvcomm always computes kept_layers even at
+    # top_layers==1.0 (a no-op selection), and single/skyline/baseline never
+    # compute one at all, so gating on top_layers alone would mislabel both.
+    ragged_path = (
+        "stock-noncausal" if (kept_layers is not None and cfg.top_layers < 1.0)
+        else "n/a"
+    )
 
     record = build_record(
         cfg, items, predictions, per_item, hops, {"total_sec": timer.elapsed},
@@ -232,6 +290,7 @@ def main(argv=None) -> int:
         attention_positions_at_final_hop_mean=(
             position_total / cache_stat_batches if cache_stat_batches else 0.0),
         cache_stat_batches=cache_stat_batches,
+        ragged_path=ragged_path,
     )
     payload = json.dumps(record, indent=2)
     if cfg.out_json:

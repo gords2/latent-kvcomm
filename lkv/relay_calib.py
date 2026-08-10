@@ -12,7 +12,7 @@ import torch
 
 from lkv.kvcomm.importance import attention_from_stash, layer_importance
 from lkv.kvcomm.tracer import install_tracer, remove_tracer
-from lkv.latentmas import generate_latent, past_length
+from lkv.latentmas import generate_latent
 from lkv.modeling import pad_batch
 from lkv.prompts import ROLES, latent_agent_message
 from lkv.realign import LatentProjector
