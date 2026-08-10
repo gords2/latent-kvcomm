@@ -90,6 +90,32 @@ stock forward, whenever a trimmed cache is used with more than one distinct
 cache length. The two-path comparison upstream's `shift_back` flag gestures at
 is now a real, measured gap (D8 vs. D9's tables above), not a hypothesis.
 
+### D8 — compliance gap in Task 14's pair harness. NOT YET CLOSED.
+
+Task 14 (`lkv/kvcomm/pair.py`) builds `run_pair`/`receiver_logits` on
+`generate_text_batch` and a plain model call, i.e. the stock forward path, not
+`forward_with_ragged_cache`. Whenever `layers_list` passed to `run_pair` or
+`receiver_logits` is a strict subset of all layers (the entire point of
+`top_layers < 1.0`), `prepare_key_cache` returns a ragged cache and this
+requirement is violated: the run is subject to the same non-causal attention
+D8 measured above.
+
+This is not a new defect distinct from D8 -- it is the stated requirement
+above not yet being implemented. `forward_with_ragged_cache` computes exactly
+one forward pass; `run_pair` needs autoregressive generation (up to
+`cfg.max_new_tokens` steps) over a batched, left-padded receiver prompt.
+Extending `forward_with_ragged_cache` into a decode loop with that shape is
+new work, not a fix to something Task 14 broke, so it was flagged rather than
+built silently (see `task-14-report.md`). Calibration is unaffected: it always
+runs at full retention, so `calibrate`'s cache is never ragged.
+
+**Consequence.** Any Phase 4 run (Task 15/16) with `top_layers < 1.0` is
+currently measuring the stock (non-causal) path, not the fix. This must be
+resolved -- either by building the decode loop or by an explicit, recorded
+decision to reproduce upstream's own uncorrected path on purpose (D8's
+consequence #2 above) -- before any such number is reported as a KVComm
+measurement rather than a known-non-causal baseline.
+
 ---
 
 ## Not yet measured

@@ -97,3 +97,64 @@ def test_main_keeps_per_item_aligned_across_batch_boundaries(monkeypatch, tmp_pa
             f"item {k}'s own designed outcome did not land at position {k} -- "
             "batch offset arithmetic misaligned per_item"
         )
+
+
+def test_main_kvcomm_calibrates_once_and_reuses_model_b(monkeypatch, tmp_path):
+    """main()'s NEW kvcomm wiring (Task 14), not exercised by tests/test_pair.py
+    since those call calibrate/run_pair directly rather than through main().
+
+    Three things that a bug here would get wrong silently (each would still
+    produce SOME JSON, just a scientifically wrong one -- exactly the kind of
+    mistake Task 15/16 would only discover after a real GPU run):
+    1. calibrate() must run once total, not once per batch (5 items,
+       generate_bs=2 -> 3 batches).
+    2. model_b must be REUSED (not reloaded) when cfg.model_b == cfg.model_name,
+       the default -- reloading it would double GPU memory in the common case.
+    3. kept_layers/layer_retention in the record must be exactly what
+       select_layers computes from calibrate's own totals, not a placeholder.
+    """
+    import types
+
+    items = [{"gold": str(k)} for k in range(5)]
+    calibrate_calls = []
+    load_model_calls = []
+    totals = {i: [1.0] for i in range(4)}
+
+    def fake_load_task(task, max_samples, seed):
+        return items
+
+    def fake_load_model(model_name, device):
+        load_model_calls.append(model_name)
+        model = types.SimpleNamespace(config=types.SimpleNamespace(num_hidden_layers=4))
+        return model, object()
+
+    def fake_calibrate(model, tokenizer, items_, cfg):
+        calibrate_calls.append(len(items_))
+        return totals
+
+    def fake_run_pair(model_a, model_b, tokenizer, cfg, batch, layers_list):
+        assert model_a is model_b, "model_b was reloaded instead of reused"
+        assert layers_list == kept_layers_expected
+        return ["\\boxed{4}" for _ in batch]
+
+    monkeypatch.setattr("lkv.run.load_task", fake_load_task)
+    monkeypatch.setattr("lkv.run.load_model", fake_load_model)
+    monkeypatch.setattr("lkv.run.calibrate", fake_calibrate)
+    monkeypatch.setattr("lkv.run.run_pair", fake_run_pair)
+
+    from lkv.kvcomm.importance import select_layers
+    kept_layers_expected = select_layers(totals, top_layers=0.5, alpha=1.0,
+                                         mu=0.5, sigma=10.0)
+
+    out = tmp_path / "out.json"
+    argv = ["--system", "kvcomm", "--task", "gsm8k", "--model_name", "Qwen/Qwen3-8B",
+            "--generate_bs", "2", "--device", "cpu", "--greedy",
+            "--top_layers", "0.5", "--alpha", "1.0", "--out_json", str(out)]
+
+    assert main(argv) == 0
+    assert calibrate_calls == [5], "calibrate must run once, over all items, not per batch"
+    assert load_model_calls == ["Qwen/Qwen3-8B"], "model_b must be reused, not reloaded"
+
+    record = json.loads(out.read_text())
+    assert record["kept_layers"] == kept_layers_expected
+    assert record["layer_retention"] == len(kept_layers_expected) / 4

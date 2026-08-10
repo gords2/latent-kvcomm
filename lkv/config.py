@@ -83,7 +83,8 @@ def task_defaults(task: str) -> int:
 
 def parse_args(argv: list[str] | None = None) -> RunConfig:
     p = argparse.ArgumentParser(prog="lkv")
-    p.add_argument("--system", required=True, choices=["latentmas", "kvcomm", "single", "textmas"])
+    p.add_argument("--system", required=True,
+                   choices=["latentmas", "kvcomm", "single", "textmas", "skyline", "baseline"])
     p.add_argument("--task", required=True, choices=TASK_CHOICES)
     p.add_argument("--model_name", required=True, choices=MODEL_CHOICES)
     p.add_argument("--model_b", default="", help="KVComm receiver; defaults to --model_name")
