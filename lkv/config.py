@@ -76,6 +76,12 @@ class RunConfig:
     # gets applied to). "relay": trace the next role's prefill over the
     # accumulated relay cache itself -- see lkv/relay_calib.py.
     calib_source: str = "relay"
+    # Decode over a layer-trimmed cache with per-layer causal masks instead of
+    # the stock forward (D8). OFF by default because KVComm's published table
+    # was produced on the stock, non-causal path -- reproducing their numbers
+    # requires it. Turn it ON for the integration, where there is no upstream
+    # to be faithful to. See docs/FINDINGS.md.
+    causal_ragged: bool = False
     # Integration
     trim_scope: str = "all"          # "all" | "delta"
     trim_every_hop: bool = False
@@ -123,6 +129,10 @@ def parse_args(argv: list[str] | None = None) -> RunConfig:
     p.add_argument("--calib_size", type=int, default=1)
     p.add_argument("--random_selection", action="store_true")
     p.add_argument("--calib_source", default="relay", choices=["pair", "relay"])
+    p.add_argument("--causal_ragged", action="store_true",
+                   help="decode a layer-trimmed cache with per-layer causal "
+                        "masks (D8). Off reproduces KVComm as published; on is "
+                        "correct and is what the integration should use.")
     p.add_argument("--trim_scope", default="all", choices=["all", "delta"])
     p.add_argument("--trim_every_hop", action="store_true")
     p.add_argument("--out_json", default="")
@@ -143,6 +153,19 @@ def parse_args(argv: list[str] | None = None) -> RunConfig:
             "question/gold). Tasks with instruction/context are "
             "hotpotqa, countries, and tipsheets. Use --calib_source relay "
             "instead, or pick one of those tasks."
+        )
+
+    if ns.causal_ragged and ns.system != "kvcomm":
+        p.error(
+            f"--causal_ragged is not wired for --system {ns.system} yet: it "
+            "currently reaches run_pair only (lkv/kvcomm/pair.py). "
+            "run_latentmas still hands its trimmed cache to the stock forward "
+            "path, so accepting the flag here would stamp the run record "
+            "ragged_path=causal-ragged over a run that was decoded "
+            "non-causally -- a result file that lies about how it was "
+            "produced. Task 21's remaining half wires the relay; until then "
+            "use --system kvcomm, or drop the flag and read the "
+            "stock-noncausal label as accurate."
         )
 
     if ns.n_agents > len(ROLES):

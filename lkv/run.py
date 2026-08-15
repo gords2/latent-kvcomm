@@ -107,13 +107,19 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
         # reader (and Task 20) tell "averaged over 40 batches" apart from
         # "averaged over 1", which the mean alone cannot.
         "cache_stat_batches": cache_stat_batches,
-        # Travels with the data rather than living only in docs/FINDINGS.md:
-        # every top_layers<1.0 relay run measures non-causal attention at
-        # every boundary after the first trim (D8, the LatentMAS-trim-hook
-        # section) because run_latentmas hands the trimmed, ragged cache to
-        # the stock forward path, not forward_with_ragged_cache. A reader
-        # holding only this JSON file has no way to know that unless it is
-        # recorded here. "n/a" for any run that never trimmed at all.
+        # Travels with the data rather than living only in docs/FINDINGS.md,
+        # because a reader holding just this JSON file cannot otherwise know
+        # which attention path produced the number. Three values:
+        #   "n/a"             -- nothing was ever trimmed, so D8 cannot apply.
+        #   "stock-noncausal" -- a ragged cache went through the stock forward,
+        #       which attends to it non-causally (D8). This is what KVComm's
+        #       published table was produced on.
+        #   "causal-ragged"   -- --causal_ragged was set, so run_pair decoded
+        #       with per-layer causal masks (lkv/kvcomm/ragged_decode.py).
+        # --causal_ragged currently reaches run_pair only; run_latentmas still
+        # hands its trimmed cache to the stock path. parse_args REJECTS the
+        # flag for any other system rather than letting this key claim a
+        # causal decode that did not happen -- see Task 21's remaining half.
         "ragged_path": ragged_path,
     }
 
@@ -276,10 +282,12 @@ def main(argv=None) -> int:
     # top_layers==1.0 -- kvcomm always computes kept_layers even at
     # top_layers==1.0 (a no-op selection), and single/skyline/baseline never
     # compute one at all, so gating on top_layers alone would mislabel both.
-    ragged_path = (
-        "stock-noncausal" if (kept_layers is not None and cfg.top_layers < 1.0)
-        else "n/a"
-    )
+    if kept_layers is not None and cfg.top_layers < 1.0:
+        # A cache really was trimmed, so which decode path ran is a fact about
+        # this result and has to travel with it.
+        ragged_path = "causal-ragged" if cfg.causal_ragged else "stock-noncausal"
+    else:
+        ragged_path = "n/a"
 
     record = build_record(
         cfg, items, predictions, per_item, hops, {"total_sec": timer.elapsed},

@@ -7,16 +7,23 @@ which is what makes the Baseline (query only) the correct floor and the Skyline
 Calibration runs at FULL retention (stock-kvcomm/models.py:58-59): importance is
 defined over the attention a receiver pays to a complete context.
 
-KNOWN LIMITATION (docs/FINDINGS.md, second D8 section): whenever `layers_list`
-is a strict subset of all layers, `prepare_key_cache` returns a RAGGED cache,
-and `run_pair`/`receiver_logits` still run it through the stock forward path
-(`generate_text_batch` / a plain model call), not `trim.forward_with_ragged_cache`.
-D8 already measured that path as non-causal for a ragged cache. Wiring the fix
-in for real generation would need a new batched, left-padding-aware,
-multi-step decode loop built on `forward_with_ragged_cache` (which only computes
-one forward pass) -- outside this task's brief; see docs/FINDINGS.md for the
-full analysis and consequence. Calibration is unaffected: it always runs at
-full retention, so its cache is never ragged.
+D8 (docs/FINDINGS.md): whenever `layers_list` is a strict subset of all layers,
+`prepare_key_cache` returns a RAGGED cache, and the stock forward path attends
+to it non-causally. `run_pair` now selects its decoder from `cfg.causal_ragged`:
+
+  off (default) -- `generate_text_batch`, the stock path. KVComm's published
+      table was produced on it, so reproducing those numbers requires it.
+  on            -- `generate_with_ragged_cache`, per-layer causal masks. This is
+      what the numbers SHOULD be, and what the integration must use, since for
+      the integration no upstream result exists to be faithful to.
+
+Task 21 Step 5 measures the gap between the two against the published
+0.51/0.62/0.62 and needs a GPU.
+
+`receiver_logits` stays on the stock path unconditionally: it is a
+single-forward diagnostic with no live caller today (see docs/FINDINGS.md's D16
+note). Calibration is unaffected either way -- it always runs at full retention,
+so its cache is never ragged.
 """
 from __future__ import annotations
 
@@ -24,6 +31,7 @@ import torch
 
 from lkv.decode import generate_text_batch
 from lkv.kvcomm.importance import attention_from_stash, layer_importance
+from lkv.kvcomm.ragged_decode import generate_with_ragged_cache
 from lkv.kvcomm.tracer import install_tracer, remove_tracer
 from lkv.kvcomm.trim import prepare_key_cache
 from lkv.modeling import pad_batch
@@ -109,9 +117,17 @@ def receiver_logits(model_a, model_b, tokenizer, cfg, items, layers_list):
 def run_pair(model_a, model_b, tokenizer, cfg, items, layers_list) -> list[str]:
     """One sender prefill, one receiver generation, one hop.
 
-    See the module docstring's D8 note for the ragged-cache limitation this
-    inherits from generate_text_batch's use of the stock forward path.
+    `cfg.causal_ragged` picks the decoder -- see the module docstring. The two
+    are interchangeable by construction: generate_with_ragged_cache takes the
+    same arguments in the same order and returns the same (texts, sequences),
+    and reproduces generate_text_batch token for token on an untrimmed cache
+    (tests/test_ragged_decode.py).
     """
+    decode = (
+        generate_with_ragged_cache
+        if getattr(cfg, "causal_ragged", False)
+        else generate_text_batch
+    )
     cache, sender_mask, _ = _sender_cache(model_a, tokenizer, items)
     trimmed = prepare_key_cache(cache, layers_list)
     ids, mask = _receiver_inputs(tokenizer, model_b, items)
@@ -122,7 +138,7 @@ def run_pair(model_a, model_b, tokenizer, cfg, items, layers_list) -> list[str]:
     # attention_mask wider than input_ids and it raises ValueError on the
     # width-mismatch guard; synthesizing past_mask as all-ones instead of
     # threading sender_mask reintroduces D12.
-    texts, _ = generate_text_batch(
+    texts, _ = decode(
         model_b, tokenizer, ids, mask,
         max_new_tokens=cfg.max_new_tokens, greedy=cfg.greedy,
         temperature=cfg.temperature, top_p=cfg.top_p,

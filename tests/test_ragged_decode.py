@@ -321,7 +321,58 @@ def test_ragged_decode_respects_a_padded_history(tiny_qwen3):
 
 
 # --------------------------------------------------------------------------
-# 4. Contract guards and batch EOS.
+# 4. The --causal_ragged switch.
+# --------------------------------------------------------------------------
+
+
+def test_causal_ragged_flag_selects_the_causal_decoder(tiny_qwen3, monkeypatch):
+    """run_pair must actually route through the ragged decoder when the flag is
+    set, and through generate_text_batch when it is not.
+
+    A flag that parses but changes no behaviour is the exact shape of defect
+    this project keeps finding, so this asserts on which function was CALLED
+    rather than on the output -- both paths return plausible text either way.
+    """
+    import lkv.kvcomm.pair as pair
+    from tests.test_pair import _Tok as PairTok, _cfg
+
+    called = []
+
+    def spy(name, real):
+        def wrapped(*a, **kw):
+            called.append(name)
+            return real(*a, **kw)
+        return wrapped
+
+    monkeypatch.setattr(pair, "generate_text_batch",
+                        spy("stock", pair.generate_text_batch))
+    monkeypatch.setattr(pair, "generate_with_ragged_cache",
+                        spy("causal", pair.generate_with_ragged_cache))
+
+    item = [{"instruction": "i" * 40, "context": "c" * 90, "question": "q" * 20}]
+    for flag, expected in ((False, "stock"), (True, "causal")):
+        called.clear()
+        pair.run_pair(tiny_qwen3, tiny_qwen3, PairTok(),
+                      _cfg(causal_ragged=flag, top_layers=0.5),
+                      item, layers_list=[2])
+        assert called == [expected], (
+            f"causal_ragged={flag} routed to {called}, expected [{expected!r}]")
+
+
+def test_causal_ragged_is_rejected_for_systems_that_ignore_it():
+    """Accepting the flag where it is not wired would stamp
+    ragged_path=causal-ragged onto a run decoded non-causally -- a result file
+    that lies about how it was produced."""
+    from lkv.config import parse_args
+
+    with pytest.raises(SystemExit):
+        parse_args(["--system", "latentmas", "--task", "gsm8k",
+                    "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "10",
+                    "--top_layers", "0.5", "--causal_ragged"])
+
+
+# --------------------------------------------------------------------------
+# 5. Contract guards and batch EOS.
 # --------------------------------------------------------------------------
 
 
