@@ -355,6 +355,44 @@ construction that finding called for.
 
 ---
 
+### Deviation — K1/K2 use an ungated Llama mirror. DELIBERATE.
+
+KVComm's published numbers are Llama numbers, so Tasks 15/16 need
+`Llama-3.1-8B-Instruct`. Measured on the GPU box, anonymously:
+
+```
+OPEN   Qwen/Qwen3-8B          OPEN   Qwen/Qwen3-4B      OPEN   Qwen/Qwen3-14B
+GATED  meta-llama/Llama-3.1-8B-Instruct   -> GatedRepoError: 401
+```
+
+The Qwen repos are Apache-2.0 and download with no account, which is why the
+LatentMAS gates (Tasks 10/11) never needed one. Only the `meta-llama/*` repos
+are gated, behind accepting Meta's licence.
+
+`NousResearch/Meta-Llama-3.1-8B-Instruct` is an open mirror and is now in
+`MODEL_CHOICES`. Its config matches the published Llama-3.1-8B-Instruct spec on
+every architectural field:
+
+| field | value |
+|---|---|
+| layers / hidden / intermediate | 32 / 4096 / 14336 |
+| heads / kv heads | 32 / 8 (GQA) |
+| vocab / max positions | 128256 / 131072 |
+| rope_theta / dtype | 500000.0 / bfloat16 |
+| weights | 16.07 GB across 4 shards (8.03B params at 2 bytes) |
+
+`default_alpha` resolves it to **1.0**, the Llama-family value, via the
+`"llama"` substring — pinned by a test, since a silent fall-through to the 1.0
+default would look identical here.
+
+**Recorded as a mirror, NOT asserted byte-identical.** The gated original
+cannot be fetched for comparison without an account, so no checksum comparison
+was possible. If K1/K2 miss their targets, "the mirror differs from the weights
+KVComm used" belongs on the diagnostic ladder — below the harness causes, but
+above concluding the method does not reproduce.
+
+---
+
 ## Not yet measured
 
 Everything below needs GPU and is not yet known. Do not cite any number for these until it appears in this file.

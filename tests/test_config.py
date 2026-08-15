@@ -28,6 +28,23 @@ def test_kvcomm_defaults_match_paper():
     assert cfg.model_b == cfg.model_name  # receiver defaults to sender
 
 
+def test_ungated_llama_mirror_is_accepted_and_resolves_to_the_llama_alpha():
+    """The meta-llama repos are gated behind a Hugging Face account; the
+    NousResearch mirror is not. KVComm's published numbers are Llama numbers, so
+    K1/K2 need a Llama -- this keeps them reachable without an account.
+
+    alpha MUST land on 1.0. default_alpha matches a substring of the model id,
+    and this id contains "llama" only inside "Meta-Llama-3.1". If that match
+    ever broke, the run would fall through to the 1.0 default and still look
+    correct here -- the Qwen case below is what keeps this from being vacuous.
+    """
+    cfg = parse_args(["--system", "kvcomm", "--task", "countries",
+                      "--model_name", "NousResearch/Meta-Llama-3.1-8B-Instruct",
+                      "--top_layers", "0.3"])
+    assert cfg.alpha == 1.0
+    assert cfg.model_b == cfg.model_name
+
+
 def test_alpha_autoselects_08_for_qwen_and_falcon():
     cfg = parse_args(["--system", "kvcomm", "--task", "countries",
                       "--model_name", "Qwen/Qwen2.5-7B-Instruct",

@@ -19,6 +19,16 @@ MODEL_CHOICES = [
     "Qwen/Qwen3-14B",
     "meta-llama/Llama-3.1-8B-Instruct",
     "meta-llama/Llama-3.2-3B-Instruct",
+    # Ungated mirror of the entry above. The meta-llama repos are gated behind
+    # accepting Meta's licence, which requires a Hugging Face account; the Qwen
+    # repos are Apache-2.0 and download anonymously. KVComm's published numbers
+    # are Llama numbers, so without this K1/K2 would be unreachable without an
+    # account. Config verified against the published Llama-3.1-8B-Instruct
+    # spec: 32 layers, hidden 4096, intermediate 14336, 32 heads / 8 KV heads,
+    # vocab 128256, rope_theta 500000, bf16, 16.07 GB across 4 shards.
+    # Recorded as a MIRROR, not asserted byte-identical (the gated original
+    # cannot be fetched for comparison) -- see docs/FINDINGS.md.
+    "NousResearch/Meta-Llama-3.1-8B-Instruct",
     "Qwen/Qwen2.5-7B-Instruct",
     "tiiuae/Falcon3-7B-Instruct",
 ]
