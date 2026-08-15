@@ -249,6 +249,64 @@ wrongly-rotated query produces an error, only worse numbers.
 
 ---
 
+### D16 — the relay's forwards ignored left padding when assigning positions. CONFIRMED, FIXED.
+
+Found during Task 21 while building a correct reference for the ragged decoder;
+the defect was in this project's own code, introduced by the D1 left-padding fix.
+
+`generate_latent` called `model(...)` directly without `position_ids`. A bare
+forward does **not** route through `prepare_inputs_for_generation`, so
+transformers derives positions from `cache_position` alone — a plain arange over
+the cache. `generate()` instead computes `attention_mask.cumsum(-1) - 1`, held
+at 1 where the mask is 0.
+
+That difference is invisible for an unpadded batch and wrong for a padded one.
+Every relay hop left-pads its prompt, which inserts pad columns **between** the
+cached history and that hop's new real tokens. Under arange those pads consume
+position indices, so a row's content is pushed away from the previous hop's
+content by exactly its pad count — and the pad count is set by the longest item
+in the batch.
+
+Measured on the tiny fixture, two hops, row 1 padded by 4 only because its peer
+was longer:
+
+| quantity | value |
+|---|---|
+| row 1 hop-1 real tokens, arange positions | `[12, 13]` — distance 5–6 from the last hop-0 token |
+| row 1 hop-1 real tokens, cumsum positions | `[8, 9]` — distance 1–2 |
+| same item's hop-1 keys, padded batch vs unpadded | **3.737** max delta |
+| same item, padding held constant | 6.109e-07 (float noise) |
+
+Two consequences, both serious for the GPU phase:
+
+1. **`--generate_bs` was silently an experimental variable.** An item's own
+   representation depended on who it was batched with, so no relay number was
+   reproducible across a change of batch size or item order.
+2. **The relay disagreed with itself.** The judger reaches the same cache
+   through `generate_text_batch` → `generate()`, which has always used the
+   cumsum convention. The latent hops used arange. One cache, two position
+   conventions.
+
+This is **not** inherited from upstream and there is no faithfulness argument for
+keeping it: upstream never sets `padding_side` and therefore right-pads, which
+is D1 — a different and worse defect. The bug appeared here only because this
+project fixed the padding side without also fixing the position convention.
+
+Fixed by `lkv/latentmas.cumsum_positions`, threaded into both the prefill and
+the latent-step forwards. Pinned by
+`test_generate_latent_is_invariant_to_batch_composition`, which fails by 3.737
+when the argument is removed.
+
+Two related sites deliberately left alone, both unreachable with padding today:
+`lkv/relay_calib.py:66` and `lkv/kvcomm/pair.py:74` run one item at a time, where
+cumsum and arange coincide. `lkv/kvcomm/trim.py:144`
+(`forward_with_ragged_cache`) still uses a bare arange and is reachable only from
+tests; the corrected multi-step version is `lkv/kvcomm/ragged_decode.py`.
+`lkv/kvcomm/pair.py:106` (`receiver_logits`) is batched and would be affected,
+but is called only from tests today — fix it before wiring it into any sweep.
+
+---
+
 ## Not yet measured
 
 Everything below needs GPU and is not yet known. Do not cite any number for these until it appears in this file.

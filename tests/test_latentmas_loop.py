@@ -62,6 +62,50 @@ def test_generate_latent_zero_steps_adds_only_the_prompt(tiny_qwen3):
     assert running_mask.shape[1] == past_length(cache)
 
 
+def test_generate_latent_is_invariant_to_batch_composition(tiny_qwen3):
+    """D16: an item's representation must not depend on how long its peers are.
+
+    Every relay hop left-pads its prompt, which inserts pad columns BETWEEN the
+    cached history and that hop's new real tokens. A forward that derives
+    positions from `cache_position` alone -- which is what a bare `model(...)`
+    call does -- counts those pads as real distance, so the same item lands at a
+    different RoPE offset depending on the LONGEST item sharing its batch, and
+    `--generate_bs` silently becomes an experimental variable.
+
+    Measured before the fix: 3.737 max delta on this item's hop-1 keys, its real
+    tokens sitting 5-6 positions from the previous hop instead of 1-2. The
+    judger reaches the same cache through `generate()`, which has always used
+    the cumsum convention, so the unfixed relay also disagreed with itself.
+    """
+    proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
+
+    def relay(hop0_ids, hop0_mask, hop1_ids, hop1_mask):
+        cache, run_mask, _ = generate_latent(
+            tiny_qwen3, proj, hop0_ids, hop0_mask, latent_steps=2,
+            past_key_values=None)
+        cache, run_mask, _ = generate_latent(
+            tiny_qwen3, proj, hop1_ids, hop1_mask, latent_steps=2,
+            past_key_values=cache, past_mask=run_mask)
+        return cache
+
+    torch.manual_seed(3)
+    h0 = torch.randint(1, 200, (2, 8))
+    h1 = torch.randint(1, 200, (2, 6))
+    m1 = torch.ones(2, 6, dtype=torch.long)
+    h1[1, :4] = 0
+    m1[1, :4] = 0  # row 1 is padded ONLY because row 0's prompt is longer
+
+    mixed = relay(h0, torch.ones(2, 8, dtype=torch.long), h1, m1)
+    alone = relay(h0[1:2], torch.ones(1, 8, dtype=torch.long),
+                  h1[1:2, 4:], torch.ones(1, 2, dtype=torch.long))
+
+    # Compare the LATENT positions: they are always real in both runs and they
+    # are what the next hop actually consumes.
+    got = mixed.key_cache[-1][1, :, -2:, :]
+    want = alone.key_cache[-1][0, :, -2:, :]
+    torch.testing.assert_close(got, want, atol=1e-4, rtol=1e-3)
+
+
 def test_generate_latent_requires_past_mask_for_nonempty_cache(tiny_qwen3):
     proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
     ids = torch.tensor([[3, 4, 5]])

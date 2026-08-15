@@ -27,6 +27,30 @@ def past_length(past_kv) -> int:
     return max(int(k.shape[-2]) for k in past_kv.key_cache)
 
 
+def cumsum_positions(mask: torch.Tensor, q_len: int) -> torch.Tensor:
+    """HuggingFace's own position convention, for the last `q_len` columns.
+
+    `prepare_inputs_for_generation` computes
+    `position_ids = attention_mask.cumsum(-1) - 1`, held at 1 where the mask is
+    0, so a left-padded row's first REAL token is position 0 and pad columns
+    consume no position index.
+
+    A bare `model(...)` call does not route through that method and instead
+    derives positions from `cache_position` alone -- a plain arange over the
+    cache, in which pad columns DO consume indices. That distinction is
+    invisible for an unpadded batch and wrong for a padded one (D16): every hop
+    of the relay left-pads its prompt, inserting pad columns BETWEEN the cached
+    history and the new real tokens, so under arange a row's content is pushed
+    away from the previous hop's content by exactly its pad count. Since the pad
+    count is set by the LONGEST item in the batch, an item's own representation
+    would otherwise depend on who it is batched with -- and the judger, which
+    goes through `generate()`, would use a different convention from the latent
+    hops feeding it.
+    """
+    pos = (mask.long().cumsum(-1) - 1).masked_fill(mask == 0, 1)
+    return pos[:, -q_len:]
+
+
 def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
                     past_key_values, past_mask=None):
     """Prefill the prompt, then roll `latent_steps` last-hidden-states back in.
@@ -51,6 +75,13 @@ def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
         out = model(
             input_ids=input_ids,
             attention_mask=mask,
+            # D16: required, not optional. Without it this forward derives
+            # positions from cache_position (a bare arange), which counts the
+            # left-padding between hops as real distance -- see
+            # cumsum_positions. The judger's generate() already uses this
+            # convention, so omitting it also makes the two halves of one relay
+            # disagree about where the same tokens sit.
+            position_ids=cumsum_positions(mask, int(input_ids.shape[1])),
             past_key_values=past_key_values,
             use_cache=True,
             output_hidden_states=True,
@@ -68,6 +99,7 @@ def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
             out = model(
                 inputs_embeds=embed,
                 attention_mask=mask,
+                position_ids=cumsum_positions(mask, 1),
                 past_key_values=cache,
                 use_cache=True,
                 output_hidden_states=True,
