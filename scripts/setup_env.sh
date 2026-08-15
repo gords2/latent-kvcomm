@@ -19,9 +19,14 @@ command -v "$PY" >/dev/null || { echo "need $PY on PATH; set PY=..."; exit 1; }
 # Nothing else changes for AMD. torch's ROCm build maps the CUDA API onto HIP,
 # so `--device cuda:0` and every torch.cuda.* call in lkv/instrument.py work
 # unmodified. Leave this unset for NVIDIA or CPU.
+# The index carries several torch versions and the newest usually violates
+# requirements.txt's >=2.4,<2.9 -- rocm6.4 ships 2.8.0, 2.9.0 and 2.9.1, and an
+# unpinned install takes 2.9.1, which the requirements pass then tries to
+# downgrade back to a CUDA wheel. Passing requirements.txt as a CONSTRAINTS file
+# keeps the pin in exactly one place instead of duplicating it here.
 if [ -n "${TORCH_INDEX_URL:-}" ]; then
-  echo "installing torch from $TORCH_INDEX_URL"
-  ./.venv/bin/pip install -q --index-url "$TORCH_INDEX_URL" torch
+  echo "installing torch from $TORCH_INDEX_URL (constrained by requirements.txt)"
+  ./.venv/bin/pip install -q --index-url "$TORCH_INDEX_URL" -c requirements.txt torch
 fi
 
 ./.venv/bin/pip install -q -r requirements.txt

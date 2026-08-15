@@ -307,6 +307,54 @@ but is called only from tests today — fix it before wiring it into any sweep.
 
 ---
 
+### D17 — the countries loader read three keys that do not exist. CONFIRMED, FIXED.
+
+Found on the GPU box, on the first real load, immediately after the environment
+was built. `lkv/data/countries.py` mapped `row["context"]`, `row["question"]`
+and `row["answer"]`. The actual file has none of them:
+
+```
+{"id": "countries_0000", "person": "Uma", "landmark": "Mahaffie House",
+ "country": "United States", "prompt_A": "Uma is at the Mahaffie House.",
+ "prompt_B": "Which country is Uma located in?", "y": "United States"}
+```
+
+`KeyError: 'context'`, on item 1 of 200 — K1 could not have started.
+
+**Why no test caught it.** `countries.jsonl` is bundled inside the KVComm repo
+rather than published on the Hub, so it is deliberately absent here. Anything
+reaching this module hit the `FileNotFoundError` guard first and never
+exercised the mapping at all. The guard worked as designed; it also hid the
+code behind it. The new `tests/test_countries.py` writes a synthetic file using
+the REAL key names, so the mapping is pinned without the corpus present.
+
+**The corrected mapping**, mirroring upstream's `CountriesEvaluator`
+(stock-kvcomm/dataloader/countries.py:15-22):
+
+| harness field | source |
+|---|---|
+| `context` | `prompt_A` |
+| `question` | `prompt_B` + `"You are required to extrapolate the country from the context."` |
+| `gold` | `country` (upstream renames it to `answer`) |
+
+Two fidelity details worth keeping:
+
+- Upstream concatenates the suffix **without a separating space** —
+  `x['prompt_B'] + "You are required to..."`, giving
+  `"...located in?You are required to..."`. That missing space sits in the
+  receiver prompt behind their published 0.51/0.62/0.62, so tidying it would
+  change the tokenisation of all 200 items and make a reproduction mismatch
+  unfalsifiable — it could no longer separate our bug from theirs.
+- `y` is ignored, because upstream reads `country`. The two agree on all 200
+  items (checked), so this is a fidelity choice, not a behavioural one.
+
+`prompt_A`/`prompt_B` are the context/question columns across every upstream
+task, which independently corroborates D13: their HotpotQA loader builds
+`prompt_A` as `"\n".join(x["support"])` — exactly the supporting-fact-only
+construction that finding called for.
+
+---
+
 ## Not yet measured
 
 Everything below needs GPU and is not yet known. Do not cite any number for these until it appears in this file.
