@@ -359,20 +359,148 @@ def test_causal_ragged_flag_selects_the_causal_decoder(tiny_qwen3, monkeypatch):
             f"causal_ragged={flag} routed to {called}, expected [{expected!r}]")
 
 
-def test_causal_ragged_is_rejected_for_systems_that_ignore_it():
-    """Accepting the flag where it is not wired would stamp
-    ragged_path=causal-ragged onto a run decoded non-causally -- a result file
-    that lies about how it was produced."""
+def test_causal_ragged_is_rejected_for_systems_that_never_trim():
+    """Only kvcomm and latentmas ever decode over a trimmed cache. Accepting the
+    flag elsewhere would stamp a ragged_path onto a run where no ragged cache
+    existed -- a result file describing a correction that never applied."""
     from lkv.config import parse_args
 
     with pytest.raises(SystemExit):
-        parse_args(["--system", "latentmas", "--task", "gsm8k",
-                    "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "10",
-                    "--top_layers", "0.5", "--causal_ragged"])
+        parse_args(["--system", "skyline", "--task", "hotpotqa",
+                    "--model_name", "Qwen/Qwen3-8B", "--causal_ragged"])
+
+
+def test_causal_ragged_is_accepted_for_both_systems_that_trim():
+    """The complement of the test above: the guard must not block the two
+    systems the flag is actually wired for."""
+    from lkv.config import parse_args
+
+    kv = parse_args(["--system", "kvcomm", "--task", "hotpotqa",
+                     "--model_name", "Qwen/Qwen3-8B", "--top_layers", "0.5",
+                     "--causal_ragged"])
+    lm = parse_args(["--system", "latentmas", "--task", "gsm8k",
+                     "--model_name", "Qwen/Qwen3-8B", "--latent_steps", "10",
+                     "--top_layers", "0.5", "--causal_ragged"])
+    assert kv.causal_ragged and lm.causal_ragged
 
 
 # --------------------------------------------------------------------------
-# 5. Contract guards and batch EOS.
+# 5. The relay half: injection actually reaches every forward.
+# --------------------------------------------------------------------------
+
+
+def _clone_cache(cache):
+    from transformers import DynamicCache
+
+    out = DynamicCache()
+    for i, (k, v) in enumerate(zip(cache.key_cache, cache.value_cache)):
+        out.update(k.clone(), v.clone(), i)
+    return out
+
+
+def test_relay_routes_every_forward_through_the_injected_causal_path(tiny_qwen3):
+    """The relay is the half that matters: its trimmed cache has no upstream to
+    be faithful to, so a flag that silently failed to reach the latent hops
+    would leave the integration's headline numbers on the non-causal path while
+    the record claimed otherwise.
+
+    Counts CALLS rather than comparing output, because both paths return
+    plausible text and the relay's stub tokenizer decodes to a constant.
+    """
+    from lkv.integrate import make_trim_hook
+    from lkv.kvcomm.ragged_decode import ragged_hidden
+    from lkv.latentmas import run_latentmas
+    from tests.test_latentmas_loop import _StubTok, _cfg
+
+    calls = {"forward": 0, "decode": 0}
+
+    def spy_forward(*a, **kw):
+        calls["forward"] += 1
+        return ragged_hidden(*a, **kw)
+
+    def spy_decode(*a, **kw):
+        calls["decode"] += 1
+        return generate_with_ragged_cache(*a, **kw)
+
+    steps = 2
+    run_latentmas(
+        tiny_qwen3, _StubTok(), _cfg(latent_steps=steps, n_agents=4),
+        [{"question": "q"}],
+        trim_hook=make_trim_hook([2], "all", every_hop=True),
+        ragged_forward=spy_forward, ragged_decode=spy_decode,
+    )
+
+    # 4 roles: hop 0 has no cache (nothing can be ragged, stock path is exact),
+    # hops 1 and 2 each do one prefill plus `steps` latent steps, and the judger
+    # decodes once.
+    assert calls["forward"] == 2 * (1 + steps), calls
+    assert calls["decode"] == 1, calls
+
+
+def test_injected_relay_forward_matches_stock_when_nothing_was_trimmed(tiny_qwen3):
+    """Faithfulness, the same property the untrimmed decode test pins for
+    run_pair: with an UNTRIMMED inherited cache the injected forward must
+    reproduce the stock relay hop exactly. Without this, a zero-drift causal
+    result through a path that computes something else would be meaningless."""
+    from lkv.kvcomm.ragged_decode import ragged_hidden
+    from lkv.latentmas import generate_latent
+    from lkv.realign import LatentProjector
+
+    proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
+    hop0_ids, hop0_mask = _padded_history(tiny_qwen3, batch=2, width=9,
+                                          pad_rows=((1, 3),))
+    hop1_ids, hop1_mask = _padded_prompt(batch=2, width=5, pad_rows=((0, 2),))
+
+    base, base_mask, _ = generate_latent(
+        tiny_qwen3, proj, hop0_ids, hop0_mask, 2, None)
+
+    stock, _, _ = generate_latent(
+        tiny_qwen3, proj, hop1_ids, hop1_mask, 2, _clone_cache(base),
+        past_mask=base_mask)
+    causal, _, _ = generate_latent(
+        tiny_qwen3, proj, hop1_ids, hop1_mask, 2, _clone_cache(base),
+        past_mask=base_mask, ragged_forward=ragged_hidden)
+
+    assert len(stock.key_cache) == len(causal.key_cache)
+    for i, (a, b) in enumerate(zip(stock.key_cache, causal.key_cache)):
+        torch.testing.assert_close(a, b, atol=1e-5, rtol=1e-4, msg=f"layer {i}")
+
+
+def test_injected_relay_forward_diverges_once_the_cache_is_ragged(tiny_qwen3):
+    """The complement: once a trim really has made the cache ragged, the causal
+    path must produce something DIFFERENT from the stock path. Equal results
+    here would mean the correction is a no-op and D8 was never real."""
+    from lkv.kvcomm.ragged_decode import ragged_hidden
+    from lkv.latentmas import generate_latent
+    from lkv.realign import LatentProjector
+
+    proj = LatentProjector(tiny_qwen3, realign=False, renorm=True, device="cpu")
+    hop0_ids, hop0_mask = _padded_history(tiny_qwen3, batch=2, width=9,
+                                          pad_rows=((1, 3),))
+    hop1_ids, hop1_mask = _padded_prompt(batch=2, width=5, pad_rows=((0, 2),))
+
+    base, base_mask, _ = generate_latent(
+        tiny_qwen3, proj, hop0_ids, hop0_mask, 2, None)
+    trimmed = prepare_key_cache(base, [2])
+    kept = base_mask[:, : max(int(k.shape[-2]) for k in trimmed.key_cache)]
+
+    stock, _, _ = generate_latent(
+        tiny_qwen3, proj, hop1_ids, hop1_mask, 2, _clone_cache(trimmed),
+        past_mask=kept)
+    causal, _, _ = generate_latent(
+        tiny_qwen3, proj, hop1_ids, hop1_mask, 2, _clone_cache(trimmed),
+        past_mask=kept, ragged_forward=ragged_hidden)
+
+    drift = max((a - b).abs().max().item()
+                for a, b in zip(stock.key_cache, causal.key_cache))
+    print(f"D8 MEASUREMENT: relay hop, stock vs causal over a ragged cache = {drift:.3e}")
+    assert drift > 1e-3, (
+        f"causal path is indistinguishable from stock ({drift:.3e}) -- either "
+        "the injection is not reaching the forwards or the cache was not ragged")
+
+
+# --------------------------------------------------------------------------
+# 6. Contract guards and batch EOS.
 # --------------------------------------------------------------------------
 
 

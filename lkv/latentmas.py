@@ -51,8 +51,33 @@ def cumsum_positions(mask: torch.Tensor, q_len: int) -> torch.Tensor:
     return pos[:, -q_len:]
 
 
+def _forward_once(model, cache, *, input_ids=None, inputs_embeds=None, full_mask,
+                  q_len, ragged=None, base_lengths=None, past_mask=None,
+                  live_mask=None, cur_mask=None):
+    """One forward, returning (last_hidden_state, cache).
+
+    `ragged` is the injected causal-ragged forward (see generate_latent). When
+    it is None this is the stock path: a plain model call with explicit cumsum
+    position_ids (D16).
+    """
+    if ragged is not None:
+        hidden = ragged(model, cache, base_lengths, past_mask, live_mask, cur_mask,
+                        input_ids=input_ids, inputs_embeds=inputs_embeds)
+        return hidden[:, -1, :], cache
+    out = model(
+        input_ids=input_ids,
+        inputs_embeds=inputs_embeds,
+        attention_mask=full_mask,
+        position_ids=cumsum_positions(full_mask, q_len),
+        past_key_values=cache,
+        use_cache=True,
+        output_hidden_states=True,
+    )
+    return out.hidden_states[-1][:, -1, :], out.past_key_values
+
+
 def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
-                    past_key_values, past_mask=None):
+                    past_key_values, past_mask=None, ragged_forward=None):
     """Prefill the prompt, then roll `latent_steps` last-hidden-states back in.
 
     Returns (cache, running_mask, positions_added). `running_mask` spans the whole
@@ -60,6 +85,12 @@ def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
     ragged, so those pad positions have to stay masked for the rest of the relay.
     Synthesizing ones later re-enables attention to them and silently changes the
     output -- measured max logit delta ~0.53 on the tiny fixture.
+
+    `ragged_forward` is the D8 correction, injected rather than imported: after a
+    trim hook the inherited cache is RAGGED, and the stock forward attends to a
+    ragged cache non-causally. It is passed in (like `trim_hook`) so this module
+    keeps no kvcomm import -- see the module docstring's D5 note. When it is None,
+    or on the first hop where there is no cache to be ragged, the stock path runs.
     """
     before = past_length(past_key_values)
     if before and past_mask is None:
@@ -71,40 +102,42 @@ def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
     mask = attention_mask if not before else torch.cat(
         [past_mask.to(dtype=attention_mask.dtype, device=attention_mask.device),
          attention_mask], dim=1)
+
+    # Hop 0 has no cache, so nothing can be ragged and the stock path is exact.
+    ragged = ragged_forward if past_key_values is not None else None
+    cache = past_key_values
+    batch = int(input_ids.shape[0])
+    base_lengths = live = cur_mask = None
+    if ragged is not None:
+        # Captured ONCE, before the first forward: a trimmed layer's mask cannot
+        # be recovered from its current length once the cache starts growing.
+        base_lengths = [int(k.shape[-2]) for k in cache.key_cache]
+        live = torch.zeros(batch, 0, dtype=torch.long, device=attention_mask.device)
+        cur_mask = attention_mask
+
     with torch.no_grad():
-        out = model(
-            input_ids=input_ids,
-            attention_mask=mask,
-            # D16: required, not optional. Without it this forward derives
-            # positions from cache_position (a bare arange), which counts the
-            # left-padding between hops as real distance -- see
-            # cumsum_positions. The judger's generate() already uses this
-            # convention, so omitting it also makes the two halves of one relay
-            # disagree about where the same tokens sit.
-            position_ids=cumsum_positions(mask, int(input_ids.shape[1])),
-            past_key_values=past_key_values,
-            use_cache=True,
-            output_hidden_states=True,
-        )
-        cache = out.past_key_values
+        last, cache = _forward_once(
+            model, cache, input_ids=input_ids, full_mask=mask,
+            q_len=int(input_ids.shape[1]), ragged=ragged, base_lengths=base_lengths,
+            past_mask=past_mask, live_mask=live, cur_mask=cur_mask)
+        if ragged is not None:
+            live = torch.cat([live, cur_mask.to(device=live.device, dtype=torch.long)], dim=1)
+
         for _ in range(latent_steps):
-            hidden = out.hidden_states[-1][:, -1, :]
-            embed = projector(hidden).unsqueeze(1)
+            embed = projector(last).unsqueeze(1)
             # A latent position is always real (never a pad), so exactly one
             # `1` column is appended per step -- never re-derived from shape.
-            mask = torch.cat(
-                [mask, torch.ones(mask.shape[0], 1, dtype=mask.dtype, device=mask.device)],
-                dim=1,
-            )
-            out = model(
-                inputs_embeds=embed,
-                attention_mask=mask,
-                position_ids=cumsum_positions(mask, 1),
-                past_key_values=cache,
-                use_cache=True,
-                output_hidden_states=True,
-            )
-            cache = out.past_key_values
+            step = torch.ones(batch, 1, dtype=mask.dtype, device=mask.device)
+            mask = torch.cat([mask, step], dim=1)
+            if ragged is not None:
+                cur_mask = torch.ones(batch, 1, dtype=torch.long, device=live.device)
+            last, cache = _forward_once(
+                model, cache, inputs_embeds=embed, full_mask=mask, q_len=1,
+                ragged=ragged, base_lengths=base_lengths, past_mask=past_mask,
+                live_mask=live, cur_mask=cur_mask)
+            if ragged is not None:
+                live = torch.cat([live, cur_mask], dim=1)
+
     return cache, mask, past_length(cache) - before
 
 
@@ -119,11 +152,18 @@ def _render(tokenizer, cfg, items, role):
     return pad_batch(tokenizer, texts)
 
 
-def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
+def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None,
+                  ragged_forward=None, ragged_decode=None):
     """Returns (final_texts, hop_records).
 
     trim_hook(cache, hop_index, inherited_len) -> cache is called after each
-    non-final agent. It is the only place KVComm enters the relay.
+    non-final agent. It is the only place KVComm's TRIMMING enters the relay.
+
+    ragged_forward / ragged_decode are the D8 correction for the cache that trim
+    hook produces -- the latent hops' forward and the judger's decoder
+    respectively. Both are injected rather than imported so this module keeps no
+    kvcomm import (D5). Passing neither leaves every forward on the stock,
+    non-causal path, which is what `--causal_ragged` off means.
     """
     if projector is None:
         from lkv.realign import LatentProjector
@@ -146,7 +186,11 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
             # the cached span -- see its contract (lkv/decode.py). Hand-rolling
             # the widening here duplicates the cached span and desyncs
             # cache_position from input_ids, raising IndexError inside generate().
-            final_texts, _ = generate_text_batch(
+            # The ragged decoder needs a cache to correct; with n_agents==1
+            # there is no relay and no boundary, so the stock path is exact.
+            decode = generate_text_batch if (
+                ragged_decode is None or cache is None) else ragged_decode
+            final_texts, _ = decode(
                 model, tokenizer, ids, mask,
                 max_new_tokens=cfg.max_new_tokens, greedy=cfg.greedy,
                 temperature=cfg.temperature, top_p=cfg.top_p,
@@ -164,7 +208,8 @@ def run_latentmas(model, tokenizer, cfg, items, trim_hook=None, projector=None):
             continue
 
         cache, run_mask, _ = generate_latent(
-            model, projector, ids, mask, cfg.latent_steps, cache, past_mask=run_mask
+            model, projector, ids, mask, cfg.latent_steps, cache,
+            past_mask=run_mask, ragged_forward=ragged_forward,
         )
         after = past_length(cache)
         if trim_hook is not None:

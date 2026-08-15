@@ -84,7 +84,8 @@ def test_main_keeps_per_item_aligned_across_batch_boundaries(monkeypatch, tmp_pa
     def fake_load_model(model_name, device):
         return object(), object()
 
-    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None,
+                           **kwargs):
         texts = []
         for item in batch:
             k = int(item["gold"])
@@ -137,7 +138,8 @@ def test_projector_is_built_once_and_shared_across_batches(monkeypatch, tmp_path
     def fake_load_model(model_name, device):
         return object(), object()
 
-    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None,
+                           **kwargs):
         seen_projectors.append(projector)
         return ["\\boxed{0}" for _ in batch], []
 
@@ -258,7 +260,8 @@ def test_main_aggregates_cache_stats_across_batches_not_just_the_first(monkeypat
     def fake_load_model(model_name, device):
         return object(), object()
 
-    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None,
+                           **kwargs):
         final_n_pos = 5 + int(batch[0]["gold"])  # 5 for batch 1, 9 for batch 2
         if trim_hook is not None:
             trim_hook(_mk_cache(2), 0, 0)             # earlier hop -- must not count
@@ -345,7 +348,8 @@ def test_layer_retention_is_the_all_batch_mean_not_the_first_batch(monkeypatch, 
             cache.update(torch.zeros(1, 1, full_len, 1), torch.zeros(1, 1, full_len, 1), i)
         return cache
 
-    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None):
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None,
+                           **kwargs):
         full_len = full_lens.pop(0)
         if trim_hook is not None:
             trim_hook(_mk_relay_cache(full_len), 0, 0)

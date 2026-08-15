@@ -12,6 +12,7 @@ from lkv.instrument import PeakMemory, Timer, attention_positions, cache_bytes
 from lkv.integrate import make_trim_hook
 from lkv.kvcomm.importance import select_layers
 from lkv.kvcomm.pair import calibrate, run_baseline, run_pair, run_skyline
+from lkv.kvcomm.ragged_decode import generate_with_ragged_cache, ragged_hidden
 from lkv.latentmas import run_latentmas
 from lkv.modeling import load_model
 from lkv.relay_calib import calibrate_relay
@@ -114,12 +115,12 @@ def build_record(cfg: RunConfig, items, predictions, per_item, hops, timings,
         #   "stock-noncausal" -- a ragged cache went through the stock forward,
         #       which attends to it non-causally (D8). This is what KVComm's
         #       published table was produced on.
-        #   "causal-ragged"   -- --causal_ragged was set, so run_pair decoded
-        #       with per-layer causal masks (lkv/kvcomm/ragged_decode.py).
-        # --causal_ragged currently reaches run_pair only; run_latentmas still
-        # hands its trimmed cache to the stock path. parse_args REJECTS the
-        # flag for any other system rather than letting this key claim a
-        # causal decode that did not happen -- see Task 21's remaining half.
+        #   "causal-ragged"   -- --causal_ragged was set, so every forward over
+        #       the trimmed cache used per-layer causal masks
+        #       (lkv/kvcomm/ragged_decode.py): run_pair's decode for kvcomm, and
+        #       for latentmas both the relay's latent hops and the judger.
+        # parse_args rejects the flag for systems that never trim, so this key
+        # cannot claim a causal decode that did not happen.
         "ragged_path": ragged_path,
     }
 
@@ -148,6 +149,14 @@ def main(argv=None) -> int:
     # docstring in build_record).
     layer_retention: float | None = None
     kept_layers: list[int] | None = None
+
+    # The D8 correction, resolved here and injected. lkv/latentmas.py keeps no
+    # kvcomm import (D5), so the relay receives these as arguments the same way
+    # it receives trim_hook.
+    ragged_forward = ragged_decode = None
+    if cfg.causal_ragged:
+        ragged_forward, ragged_decode = ragged_hidden, generate_with_ragged_cache
+
     if cfg.system == "kvcomm":
         totals = calibrate(model, tokenizer, items, cfg)
         kept_layers = select_layers(totals, cfg.top_layers, cfg.alpha, cfg.mu,
@@ -227,7 +236,9 @@ def main(argv=None) -> int:
                 trim_hook = (_measuring_hook(base_hook, batch_cache_stats)
                             if cfg.system == "latentmas" else None)
                 texts, batch_hops = run_latentmas(model, tokenizer, local_cfg, batch,
-                                                  trim_hook=trim_hook, projector=projector)
+                                                  trim_hook=trim_hook, projector=projector,
+                                                  ragged_forward=ragged_forward,
+                                                  ragged_decode=ragged_decode)
                 if base_hook is not None:
                     if offset == 0:
                         # First-batch-only inspection copy -- see

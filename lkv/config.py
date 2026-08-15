@@ -155,17 +155,12 @@ def parse_args(argv: list[str] | None = None) -> RunConfig:
             "instead, or pick one of those tasks."
         )
 
-    if ns.causal_ragged and ns.system != "kvcomm":
+    if ns.causal_ragged and ns.system not in ("kvcomm", "latentmas"):
         p.error(
-            f"--causal_ragged is not wired for --system {ns.system} yet: it "
-            "currently reaches run_pair only (lkv/kvcomm/pair.py). "
-            "run_latentmas still hands its trimmed cache to the stock forward "
-            "path, so accepting the flag here would stamp the run record "
-            "ragged_path=causal-ragged over a run that was decoded "
-            "non-causally -- a result file that lies about how it was "
-            "produced. Task 21's remaining half wires the relay; until then "
-            "use --system kvcomm, or drop the flag and read the "
-            "stock-noncausal label as accurate."
+            f"--causal_ragged does nothing for --system {ns.system}: only "
+            "kvcomm (run_pair) and latentmas (the relay's latent hops and "
+            "judger) ever decode over a trimmed cache. Accepting it here would "
+            "stamp ragged_path onto a run where no ragged cache existed."
         )
 
     if ns.n_agents > len(ROLES):

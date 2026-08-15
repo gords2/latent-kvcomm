@@ -58,20 +58,36 @@ def _eos_ids(tokenizer, model) -> set[int]:
     return {int(x) for x in (raw if isinstance(raw, (list, tuple, set)) else [raw])}
 
 
-def _ragged_forward(model, cache, base_lengths, past_mask, live_mask, cur_ids, cur_mask):
-    """One forward pass over a ragged, already-grown cache. Updates `cache`.
+def ragged_hidden(model, cache, base_lengths, past_mask, live_mask, cur_mask,
+                  *, input_ids=None, inputs_embeds=None):
+    """Last hidden state (POST final norm), causal under a ragged cache.
 
-    `base_lengths[i]` is layer i's cache length BEFORE any of this decode's
-    tokens were appended; `live_mask` covers everything appended since (shape
-    (batch, n_live)); `cur_ids`/`cur_mask` are the block being run now. Layer i's
-    columns are therefore `past_mask[:, :base_lengths[i]] ++ live_mask ++
-    cur_mask`, and its cache must already hold `base_lengths[i] + n_live`
-    positions -- checked, because an off-by-one here produces fluent text
-    conditioned on the wrong positions rather than an exception.
+    Updates `cache` in place. `base_lengths[i]` is layer i's cache length BEFORE
+    any of this pass's tokens were appended; `live_mask` covers everything
+    appended since (shape (batch, n_live)); `cur_mask` is the block being run
+    now. Layer i's columns are therefore
+    `past_mask[:, :base_lengths[i]] ++ live_mask ++ cur_mask`, and its cache must
+    already hold `base_lengths[i] + n_live` positions -- checked, because an
+    off-by-one here produces fluent text conditioned on the wrong positions
+    rather than an exception.
+
+    Exactly one of `input_ids` / `inputs_embeds` is required. The embeds form is
+    what LatentMAS's latent steps need: they feed a projected hidden state back
+    in as a single position. Post-norm matches `output_hidden_states=True`,
+    where transformers appends the final hidden state AFTER `model.norm`, so a
+    caller reading `hidden_states[-1]` gets the same tensor this returns.
     """
-    device = cur_ids.device
+    if (input_ids is None) == (inputs_embeds is None):
+        raise ValueError(
+            "pass exactly one of input_ids / inputs_embeds (got input_ids="
+            f"{input_ids is not None}, inputs_embeds={inputs_embeds is not None})"
+        )
+    hidden = (
+        model.model.embed_tokens(input_ids) if inputs_embeds is None else inputs_embeds
+    )
+    device = hidden.device
     dtype = next(model.parameters()).dtype
-    batch, q_len = int(cur_ids.shape[0]), int(cur_ids.shape[1])
+    batch, q_len = int(hidden.shape[0]), int(hidden.shape[1])
     n_live = int(live_mask.shape[1])
     neg = torch.finfo(dtype).min
 
@@ -82,7 +98,6 @@ def _ragged_forward(model, cache, base_lengths, past_mask, live_mask, cur_ids, c
         torch.ones(q_len, q_len, device=device, dtype=torch.bool), diagonal=1
     ).view(1, 1, q_len, q_len)
 
-    hidden = model.model.embed_tokens(cur_ids)
     for i, layer in enumerate(model.model.layers):
         base = int(base_lengths[i])
         held = int(cache.key_cache[i].shape[-2])
@@ -127,7 +142,15 @@ def _ragged_forward(model, cache, base_lengths, past_mask, live_mask, cur_ids, c
         )
         hidden = out[0] if isinstance(out, tuple) else out
 
-    return model.lm_head(model.model.norm(hidden))
+    return model.model.norm(hidden)
+
+
+def _ragged_forward(model, cache, base_lengths, past_mask, live_mask, cur_ids, cur_mask):
+    """Logits form of `ragged_hidden`, for token-id input."""
+    return model.lm_head(
+        ragged_hidden(model, cache, base_lengths, past_mask, live_mask, cur_mask,
+                      input_ids=cur_ids)
+    )
 
 
 def _next_tokens(logits, greedy: bool, temperature: float, top_p: float):
