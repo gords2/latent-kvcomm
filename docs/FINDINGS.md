@@ -355,6 +355,73 @@ construction that finding called for.
 
 ---
 
+### D18 / D19 — K1 scored 0.0000 on every condition. TWO defects. CONFIRMED, FIXED.
+
+Measured 2026-08-16, MI300X, `NousResearch/Meta-Llama-3.1-8B-Instruct`,
+Countries, `--system skyline --greedy`, n=200.
+
+The first GPU session produced **accuracy 0.0000 on all six Countries
+conditions, skyline included**. A skyline run receives the full context *and*
+the question, so zero is not a possible measurement — it was a harness failure.
+Diagnosis was impossible at the time because run records stored only
+`correct`/`i`/`score` and never the generation. Storing predictions
+(`per_item.prediction`, `prediction_chars`, `gold`) found both causes in
+minutes. **That is the transferable lesson: a record that cannot say what the
+model emitted cannot be debugged.**
+
+**D18 — the QA instruction was a paraphrase, not upstream's string.**
+
+| | text |
+|---|---|
+| upstream (`eval.py:10`) | `Directly answer the question based on the context passage, no explanation is needed.` |
+| this project (invented) | `Answer the question using the given context.` |
+
+The dropped clause is load-bearing. Countries generates at `max_tokens=5`
+(upstream's own `CountriesEvaluator`), which suffices only if the model answers
+with the bare country. Under the paraphrase it produced prose and was cut
+mid-sentence: `'The context is the Australian'` for gold `Australia`, 22–29
+characters, the answer never reaching the output. Both `countries.py` and
+`hotpotqa.py` carried the same invented string, so this also explains K2's
+0.0020 baseline. Fixed by hoisting `QA_INSTRUCTION` into `lkv/prompts.py` as
+upstream's verbatim text, aliased by both loaders and pinned as a literal in
+`tests/test_prompts.py`.
+
+**D19 — no KVComm path applied the chat template.**
+
+`_plain`, `_sender_cache` and `_receiver_inputs` passed the raw
+`"Instruction: ... Context: ... Question: ..."` string to the tokenizer with
+`add_special_tokens=False`. Upstream renders every message — sender, receiver,
+skyline and baseline alike — through
+`apply_chat_template([{"role": "user", ...}], add_generation_prompt=True)`
+(`eval.py:47`, applied at `:105`, `:177`, `:204`, `:214`).
+
+This is not a weaker form of the same request. An Instruct model handed an
+unterminated transcript continues the **format**:
+
+| | prediction | gold | F1 |
+|---|---|---|---|
+| D18 fixed, D19 open | `Answer: Australia\nInstruction` | Australia | 0.500 |
+| both fixed | `Australia` | Australia | 1.000 |
+
+With a strict `> 0.5` threshold, one echoed word is the whole difference. In
+the D18-only run, **77 of 200 items contained the correct answer and were
+scored wrong**, 164/200 predictions began with `Answer`, and accuracy was
+0.1100. Fixed with `chat_pad_batch` in `lkv/modeling.py`, used by all four
+paths.
+
+**Result after both fixes:** skyline **0.6350** (mean F1 0.6333), inside K1's
+[0.55, 0.69] band. Predictions are bare country names.
+
+Note the sender prefill is now templated too, so its cache carries an assistant
+header. That is what upstream does (`msg_A` and `msg_B` are templated
+separately), but it is a real change to what gets trimmed.
+
+**Every KVComm number produced before this fix is void**, including the six
+Countries records and the HotpotQA baseline committed in `runs/` on
+2026-08-15. They were deleted rather than kept, since git history retains them.
+
+---
+
 ### Deviation — K1/K2 use an ungated Llama mirror. DELIBERATE.
 
 KVComm's published numbers are Llama numbers, so Tasks 15/16 need

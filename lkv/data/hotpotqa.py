@@ -11,7 +11,11 @@ that looks like the method failing rather than the harness being wrong.
 """
 from datasets import load_dataset
 
-INSTRUCTION = "Answer the question using the given context."
+from lkv.prompts import QA_INSTRUCTION
+
+# Upstream's, verbatim -- NOT a paraphrase. Same string countries.py uses, and
+# for the same reason: every QA task takes eval.py's QA branch (D18).
+INSTRUCTION = QA_INSTRUCTION
 
 
 def construct_support(row) -> list[str]:

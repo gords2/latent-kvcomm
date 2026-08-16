@@ -34,7 +34,7 @@ from lkv.kvcomm.importance import attention_from_stash, layer_importance
 from lkv.kvcomm.ragged_decode import generate_with_ragged_cache
 from lkv.kvcomm.tracer import install_tracer, remove_tracer
 from lkv.kvcomm.trim import prepare_key_cache
-from lkv.modeling import pad_batch
+from lkv.modeling import chat_pad_batch
 from lkv.prompts import (
     kvcomm_receiver_prompt,
     kvcomm_sender_prompt,
@@ -42,11 +42,11 @@ from lkv.prompts import (
 )
 
 
-def _sender_cache(model_a, tokenizer, items):
+def _sender_cache(model_a, tokenizer, items, cfg):
     """Prefill Instruction+Context on the sender.
 
     Returns (cache, mask, ctx_len). `mask` is the sender's own attention_mask
-    from pad_batch, which left-pads ragged batches -- so it can hold real
+    from chat_pad_batch, which left-pads ragged batches -- so it can hold real
     zeros. Every caller must thread this mask through as the historical mask
     for the cached span rather than synthesizing all-ones: a synthesized ones
     mask re-enables attention to pad key/value vectors, which are real,
@@ -54,16 +54,16 @@ def _sender_cache(model_a, tokenizer, items):
     D12), not zeros the way a padded input_id is.
     """
     texts = [kvcomm_sender_prompt(it["instruction"], it["context"]) for it in items]
-    ids, mask = pad_batch(tokenizer, texts)
+    ids, mask = chat_pad_batch(tokenizer, texts, getattr(cfg, "enable_thinking", True))
     ids, mask = ids.to(model_a.device), mask.to(model_a.device)
     with torch.no_grad():
         out = model_a(input_ids=ids, attention_mask=mask, use_cache=True)
     return out.past_key_values, mask, int(ids.shape[1])
 
 
-def _receiver_inputs(tokenizer, model_b, items):
+def _receiver_inputs(tokenizer, model_b, items, cfg):
     texts = [kvcomm_receiver_prompt(it["instruction"], it["question"]) for it in items]
-    ids, mask = pad_batch(tokenizer, texts)
+    ids, mask = chat_pad_batch(tokenizer, texts, getattr(cfg, "enable_thinking", True))
     return ids.to(model_b.device), mask.to(model_b.device)
 
 
@@ -73,8 +73,8 @@ def calibrate(model, tokenizer, items, cfg) -> dict:
     saved = install_tracer(model)
     try:
         for item in items[: cfg.calib_size]:
-            cache, sender_mask, _ = _sender_cache(model, tokenizer, [item])
-            ids, mask = _receiver_inputs(tokenizer, model, [item])
+            cache, sender_mask, _ = _sender_cache(model, tokenizer, [item], cfg)
+            ids, mask = _receiver_inputs(tokenizer, model, [item], cfg)
             full_mask = torch.cat(
                 [sender_mask.to(dtype=mask.dtype, device=mask.device), mask], dim=1)
             with torch.no_grad():
@@ -101,11 +101,11 @@ def receiver_logits(model_a, model_b, tokenizer, cfg, items, layers_list):
     plain model call inherits the same non-causal-attention limitation as
     run_pair. Calls with layers_list=None or a full-layer list are unaffected.
     """
-    ids, mask = _receiver_inputs(tokenizer, model_b, items)
+    ids, mask = _receiver_inputs(tokenizer, model_b, items, cfg)
     if layers_list is None:
         with torch.no_grad():
             return model_b(input_ids=ids, attention_mask=mask, use_cache=False).logits
-    cache, sender_mask, _ = _sender_cache(model_a, tokenizer, items)
+    cache, sender_mask, _ = _sender_cache(model_a, tokenizer, items, cfg)
     trimmed = prepare_key_cache(cache, layers_list)
     full_mask = torch.cat(
         [sender_mask.to(dtype=mask.dtype, device=mask.device), mask], dim=1)
@@ -128,9 +128,9 @@ def run_pair(model_a, model_b, tokenizer, cfg, items, layers_list) -> list[str]:
         if getattr(cfg, "causal_ragged", False)
         else generate_text_batch
     )
-    cache, sender_mask, _ = _sender_cache(model_a, tokenizer, items)
+    cache, sender_mask, _ = _sender_cache(model_a, tokenizer, items, cfg)
     trimmed = prepare_key_cache(cache, layers_list)
-    ids, mask = _receiver_inputs(tokenizer, model_b, items)
+    ids, mask = _receiver_inputs(tokenizer, model_b, items, cfg)
     # generate_text_batch owns widening the cached span onto input_ids/mask
     # itself (lkv/decode.py's contract) -- pass the receiver prompt ALONE plus
     # past_mask, the sender's real historical mask. Pre-widening here (as a
@@ -148,7 +148,7 @@ def run_pair(model_a, model_b, tokenizer, cfg, items, layers_list) -> list[str]:
 
 
 def _plain(model, tokenizer, cfg, texts) -> list[str]:
-    ids, mask = pad_batch(tokenizer, texts)
+    ids, mask = chat_pad_batch(tokenizer, texts, getattr(cfg, "enable_thinking", True))
     out, _ = generate_text_batch(
         model, tokenizer, ids.to(model.device), mask.to(model.device),
         max_new_tokens=cfg.max_new_tokens, greedy=cfg.greedy,

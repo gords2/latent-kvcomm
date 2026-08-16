@@ -9,6 +9,25 @@ from __future__ import annotations
 
 ROLES = ("planner", "critic", "refiner", "judger")
 
+# Upstream's QA_INSTRUCTION, verbatim (stock-kvcomm/eval.py:10). Every QA task
+# shares it: countries, hotpotqa and tipsheets all fall through to eval.py's
+# `else` branch, which is the QA one.
+#
+# The exact wording is load-bearing, and "no explanation is needed" carries the
+# weight. Countries generates at max_tokens=5 (their CountriesEvaluator sets
+# it), which suffices only if the model answers with the bare country and
+# nothing else. This project previously invented a milder paraphrase --
+# "Answer the question using the given context." -- under which
+# Llama-3.1-8B-Instruct opens with a sentence instead: measured, it emitted
+# 'The context is the Australian' for gold 'Australia' and was cut off at token
+# 5 with the answer never reaching the output. That produced accuracy 0.0000
+# across all six Countries conditions INCLUDING skyline, plus a 0.0020 HotpotQA
+# baseline. See D18 in docs/FINDINGS.md. Do not paraphrase this string.
+QA_INSTRUCTION = (
+    "Directly answer the question based on the context passage, "
+    "no explanation is needed."
+)
+
 _SYSTEM = (
     "You are one agent in a multi-agent system. Agents share their reasoning "
     "through a latent cache rather than text. Play only your own role."

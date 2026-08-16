@@ -39,6 +39,40 @@ def load_model(model_name: str, device: str = "cuda:0", dtype: torch.dtype | Non
     return model, tokenizer
 
 
+def chat_pad_batch(tokenizer, messages: list[str], enable_thinking: bool = True):
+    """Render each message as a one-turn user chat, then pad the batch.
+
+    Every KVComm path must go through here, because upstream does: eval.py's
+    apply_chat_template (:47) wraps sender, receiver, skyline and baseline
+    messages alike in `[{"role": "user", ...}]` with add_generation_prompt=True.
+
+    Feeding the bare "Instruction: ... Context: ... Question: ..." string
+    instead -- which this project did until D19 -- is not a milder version of
+    the same thing. It turns the task into document continuation: an Instruct
+    model handed an unterminated transcript continues the FORMAT rather than
+    answering it, and the measured output was 'Answer: Australia\\nInstruction'
+    where the bare answer was wanted. On Countries that costs everything,
+    because max_new_tokens is 5 and the F1 threshold is a strict `> 0.5`: one
+    echoed word drags a correct answer to exactly 0.5, which scores as wrong.
+    77 of 200 items failed precisely that way. See D19 in docs/FINDINGS.md.
+
+    add_special_tokens=False inside pad_batch stays correct: the rendered
+    template already carries BOS, so tokenizing it again would double it.
+    """
+    # enable_thinking is forwarded ONLY when False -- Qwen3's template accepts
+    # it, other families' templates raise on an unexpected kwarg, and True is
+    # the template default anyway. Same rule as lkv/latentmas.py's _render.
+    extra = {} if enable_thinking else {"enable_thinking": False}
+    texts = [
+        tokenizer.apply_chat_template(
+            [{"role": "user", "content": m}],
+            tokenize=False, add_generation_prompt=True, **extra,
+        )
+        for m in messages
+    ]
+    return pad_batch(tokenizer, texts)
+
+
 def pad_batch(tokenizer, texts: list[str]):
     """Tokenize a batch, forcing left padding regardless of tokenizer state."""
     tokenizer.padding_side = "left"

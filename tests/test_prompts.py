@@ -44,6 +44,31 @@ def test_truncate_context_none_means_no_truncation():
         truncate_context(text, -1)
 
 
+def test_qa_instruction_is_upstreams_verbatim_and_shared_by_every_qa_task():
+    """D18 regression -- the defect that made K1 unmeasurable.
+
+    A paraphrase of this string ("Answer the question using the given
+    context.") is what produced accuracy 0.0000 on all six Countries
+    conditions, skyline included. Countries generates at max_new_tokens=5, so
+    the instruction has to suppress a preamble outright or the answer never
+    reaches the output: measured, the model emitted 'The context is the
+    Australian' for gold 'Australia' and was truncated mid-sentence.
+
+    Pinned as a literal, not compared against an import of the same constant --
+    that would pass no matter what the constant said. Every QA task must share
+    it, since upstream routes all three through eval.py's QA branch.
+    """
+    from lkv.data import countries, hotpotqa
+    from lkv.prompts import QA_INSTRUCTION
+
+    assert QA_INSTRUCTION == (
+        "Directly answer the question based on the context passage, "
+        "no explanation is needed."
+    )
+    assert countries.INSTRUCTION == QA_INSTRUCTION
+    assert hotpotqa.INSTRUCTION == QA_INSTRUCTION
+
+
 def test_kvcomm_templates_separate_context_from_question():
     s = kvcomm_sender_prompt("INSTR", "CTX")
     r = kvcomm_receiver_prompt("INSTR", "Q")

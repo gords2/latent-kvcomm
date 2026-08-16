@@ -26,7 +26,11 @@ same convention hotpotqa.py follows.
 import json
 from pathlib import Path
 
-INSTRUCTION = "Answer the question using the given context."
+from lkv.prompts import QA_INSTRUCTION
+
+# Upstream's, verbatim -- NOT a paraphrase. See its definition for why the
+# exact wording decides whether this task scores at all (D18).
+INSTRUCTION = QA_INSTRUCTION
 
 # Appended to prompt_B verbatim and WITHOUT a separating space, because upstream
 # does exactly that: `x['prompt_B'] + "You are required to..."` (countries.py:21).

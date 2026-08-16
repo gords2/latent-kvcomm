@@ -4,9 +4,36 @@ from lkv.config import RunConfig
 from lkv.kvcomm.pair import calibrate, run_baseline, run_pair, run_skyline
 
 
-class _Tok:
+class _ChatTemplateMixin:
+    """The one tokenizer behaviour these fakes must model faithfully.
+
+    D19: every KVComm path renders its message through the chat template
+    before tokenizing, exactly as upstream's eval.py does. A fake lacking this
+    method would make the production code raise AttributeError; a fake that
+    silently echoed the message back would let the defect return without a
+    single test going red. The wrapper is deliberately visible in the output
+    so a test can assert it was applied at all.
+    """
+    chat_calls: list
+
+    def apply_chat_template(self, messages, tokenize=False,
+                            add_generation_prompt=False, **kw):
+        assert tokenize is False, "callers render to text, then pad_batch tokenizes"
+        assert add_generation_prompt is True, (
+            "without a generation prompt the model continues the transcript "
+            "instead of answering it -- that is D19"
+        )
+        assert [m["role"] for m in messages] == ["user"]
+        self.chat_calls.append(messages[0]["content"])
+        return f"<|user|>{messages[0]['content']}<|assistant|>"
+
+
+class _Tok(_ChatTemplateMixin):
     pad_token_id = 0
     padding_side = "left"
+
+    def __init__(self):
+        self.chat_calls = []
 
     def __call__(self, texts, return_tensors=None, padding=None, add_special_tokens=None):
         # length proportional to text length so context/question differ in size
@@ -84,6 +111,45 @@ def test_skyline_sees_both(tiny_llama):
     run_skyline(tiny_llama, _Spy(), _cfg(), _ITEMS)
     joined = " ".join(seen)
     assert "Paris is the capital" in joined and "capital of France" in joined
+
+
+def test_every_kvcomm_path_renders_through_the_chat_template(tiny_llama):
+    """D19 regression -- the second half of what made K1 unmeasurable.
+
+    Upstream wraps sender, receiver, skyline and baseline messages alike in a
+    one-turn user chat with add_generation_prompt=True (eval.py:47). This
+    project fed the bare "Instruction: ... Context: ... Question: ..." string
+    to the tokenizer instead, which is not a weaker form of the same request:
+    an Instruct model handed an unterminated transcript continues the FORMAT.
+    Measured on Countries skyline, it answered 'Answer: Australia\\nInstruction'
+    where 'Australia' was wanted -- and since max_new_tokens is 5 and the F1
+    threshold is a strict `> 0.5`, that one echoed word scores as WRONG. 77 of
+    200 items held the correct answer and were marked wrong.
+
+    All four paths are checked, not just the one that was noticed: they share
+    the defect and would regress independently. The assertion is that the
+    tokenizer SAW a chat-template call carrying the message -- checking the
+    rendered text alone would pass on a fake that ignored the template.
+    """
+    for name, call in (
+        ("skyline", lambda t: run_skyline(tiny_llama, t, _cfg(), _ITEMS)),
+        ("baseline", lambda t: run_baseline(tiny_llama, t, _cfg(), _ITEMS)),
+        ("pair", lambda t: run_pair(tiny_llama, tiny_llama, t, _cfg(), _ITEMS, [0, 1, 2, 3])),
+    ):
+        tok = _Tok()
+        call(tok)
+        assert tok.chat_calls, f"{name} never rendered a chat template"
+        assert all("Instruction:" in c for c in tok.chat_calls), (
+            f"{name} passed something other than the built prompt to the template"
+        )
+
+    # The pair path must template BOTH sides -- the sender's context prefill
+    # and the receiver's question -- since upstream templates msg_A and msg_B
+    # separately (eval.py:204, 214).
+    tok = _Tok()
+    run_pair(tiny_llama, tiny_llama, tok, _cfg(), _ITEMS, [0, 1, 2, 3])
+    assert any("Context:" in c for c in tok.chat_calls), "sender side not templated"
+    assert any("Question:" in c for c in tok.chat_calls), "receiver side not templated"
 
 
 class _DistinctTok(_Tok):
