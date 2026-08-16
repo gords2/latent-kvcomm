@@ -32,23 +32,45 @@ CAUSAL=${CAUSAL:-1}
 CAUSAL_FLAG=""
 [ "$CAUSAL" = "1" ] && CAUSAL_FLAG="--causal_ragged"
 
+# THINK=0 passes --no_thinking to every condition INCLUDING the two reference
+# runs, so the sweep stays internally paired.
+#
+# This is the configuration the sweep should actually run in, and the reason is
+# measured rather than assumed. The plan says to sweep whichever task shows the
+# larger paired relay-versus-single gap -- "the only one where trimming has
+# something to damage". Of the four cells measured, exactly one has a real gap:
+#
+#   task    thinking  relay   single  delta    McNemar p
+#   GSM8K   on        0.9500  0.9600  -0.0100  0.6875   ns
+#   GSM8K   off       0.9150  0.8900  +0.0250  0.3018   ns
+#   MBPP+   on        0.7487  0.7566  -0.0079  0.7201   ns
+#   MBPP+   off       0.7302  0.6931  +0.0370  0.0201   SIGNIFICANT
+#
+# So MBPP+ with THINK=0 is the only setting where a relay advantage exists for
+# trimming to erode. Sweeping GSM8K would measure how much trimming degrades a
+# task one agent already solves at 0.96 -- a real number answering no question.
+# It is also ~4x cheaper than MBPP+ with thinking left on.
+THINK=${THINK:-1}
+THINK_FLAG=""
+[ "$THINK" = "0" ] && THINK_FLAG="--no_thinking"
+
 mkdir -p runs/logs
 
 # One condition per line: "<tag>|<extra args>". Kept as data rather than a
 # nest of loops so the concurrency layer below stays trivial to read.
 CONDITIONS=$(
-  echo "int_${TASK}_full|--system latentmas --top_layers 1.0"
-  echo "int_${TASK}_single|--system single"
+  echo "int_${TASK}_full|--system latentmas --top_layers 1.0 $THINK_FLAG"
+  echo "int_${TASK}_single|--system single $THINK_FLAG"
   for SCOPE in all delta; do
     for R in 0.3 0.5 0.7; do
-      echo "int_${TASK}_${SCOPE}_r${R/0./}0|--system latentmas --top_layers $R --trim_scope $SCOPE --trim_every_hop --calib_source relay $CAUSAL_FLAG"
+      echo "int_${TASK}_${SCOPE}_r${R/0./}0|--system latentmas --top_layers $R --trim_scope $SCOPE --trim_every_hop --calib_source relay $CAUSAL_FLAG $THINK_FLAG"
     done
   done
-  echo "int_${TASK}_all_r50_oneshot|--system latentmas --top_layers 0.5 --trim_scope all --calib_source relay $CAUSAL_FLAG"
-  echo "int_${TASK}_all_r50_random|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --random_selection $CAUSAL_FLAG"
+  echo "int_${TASK}_all_r50_oneshot|--system latentmas --top_layers 0.5 --trim_scope all --calib_source relay $CAUSAL_FLAG $THINK_FLAG"
+  echo "int_${TASK}_all_r50_random|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --random_selection $CAUSAL_FLAG $THINK_FLAG"
   case "$TASK" in
     gsm8k|mbppplus) : ;;   # announced below, not silently dropped
-    *) echo "int_${TASK}_all_r50_paircal|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --calib_source pair $CAUSAL_FLAG" ;;
+    *) echo "int_${TASK}_all_r50_paircal|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --calib_source pair $CAUSAL_FLAG $THINK_FLAG" ;;
   esac
 )
 
