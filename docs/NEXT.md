@@ -2,44 +2,72 @@
 
 Read this first. It is the handoff for the GPU phase.
 
-**State as of 2026-08-15:** all CPU-testable work is done, reviewed, merged to `main`, and pushed. Suite is **158/158** green with no GPU or network required. Nothing is half-finished — the remaining tasks were deliberately deferred because they need a GPU.
+**State as of 2026-08-16, ~01:30.** The first GPU session happened. The
+environment is solved, both LatentMAS gates ran, and **K1 is broken in a way that
+must be fixed before any KVComm number means anything**. All 18 run records are
+committed under `runs/`. Both droplets were destroyed.
 
-Two things changed after this file was first written:
-
-- **Task 21's CPU half landed.** The causal ragged decoder exists and is wired to *both* call sites behind `--causal_ragged`, off by default. Only its Step 5 measurement still needs a GPU.
-- **D16 was found and fixed.** The relay assigned positions with a bare arange, so left padding between hops counted as real distance and an item's own representation depended on the length of its batch peers — `--generate_bs` was silently an experimental variable. Read D16 in `docs/FINDINGS.md` before running anything.
-
-- The spec is `docs/superpowers/plans/2026-08-09-latentmas-kvcomm.md` (21 tasks).
-- Measured defects and deviations are in `docs/FINDINGS.md`. **Read it before citing any number.**
-- The per-task process log is `.superpowers/sdd/2026-08-09-latentmas-kvcomm/progress.md` (317 lines, git-ignored, local only). It holds every parked ruling.
+- Suite: **163/163** green on CPU, no GPU or network needed.
+- Measured defects and deviations: `docs/FINDINGS.md`. **Read before citing any number.**
+- The spec: `docs/superpowers/plans/2026-08-09-latentmas-kvcomm.md` (21 tasks).
+- Per-task process log: `.superpowers/sdd/2026-08-09-latentmas-kvcomm/progress.md` (git-ignored, local only).
 
 ---
 
 ## First action tomorrow
 
-You need a GPU box. Nothing below can start without one.
+1. **The user creates a GPU droplet and supplies the IP.** Claude cannot create
+   or destroy droplets and must not handle API tokens.
+2. **No Hugging Face account is needed.** This was wrong yesterday and cost time:
+   the Qwen3 repos are Apache-2.0 and download anonymously; only `meta-llama/*`
+   is gated. `NousResearch/Meta-Llama-3.1-8B-Instruct` is in `MODEL_CHOICES` and
+   is what the KVComm gates use. **Never ask the user to `hf auth login`.**
+3. Then the setup below, then **Task 0**, which blocks everything else.
 
-1. The user creates the droplet and supplies the IP. Claude cannot create or destroy droplets, and must not handle API tokens.
-2. The user runs `hf auth login` themselves. **Never paste an HF token into chat.**
-3. Then the prerequisites below, then Task 10.
-
-Budget expectation: setup is dominated by downloading ~51 GB of weights. Tasks 10 and 11 together are roughly 2–3 GPU hours; the full remaining set roughly 8–12.
+Budget: the whole remaining set is roughly 3–5 GPU hours if nothing else breaks.
 
 ---
 
-## Prerequisites on the GPU box
+## Setup on a fresh MI300X box — known good, follow exactly
 
-Three things are missing that the CPU phase did not need.
+The first SSH lands in `Please wait while we get your droplet ready...` and the
+connection closes. That is DigitalOcean's first-boot script, not a fault. Poll
+until a real shell answers; it took ~9 minutes.
 
-**1. Environment.** Target Python 3.11 (the dev laptop used 3.13 because 3.11 was absent; either works, but keep one).
+**Do not infer missing hardware from a missing tool.** Yesterday `nvidia-smi:
+command not found` plus an `lspci` that was not installed produced a confident,
+wrong "this droplet has no GPU" — on a working MI300X. The definitive test is the
+ROCm device node:
 
 ```bash
-PY=python3.11 ./scripts/setup_env.sh
+ssh root@<IP> 'ls -l /dev/kfd && lsmod | grep amdgpu && rocm-smi --showproductname'
 ```
 
-The `transformers==4.53.3` pin is load-bearing — KVComm's own requirements say "Must be 4.53.3, model definition changed in 4.54.0". Never bump it to silence a warning.
+**Ship the repo with rsync, not a clone** (it is private, and this avoids any
+credential handling):
 
-**2. nltk corpora.** KVComm's F1 lemmatizes both sides (see D14). `lkv/lemma.py` probes capabilities functionally, downloads only what is missing, and raises rather than silently scoring without lemmatization. Pre-seed so the first gate run does not stall:
+```bash
+rsync -az --exclude .venv --exclude __pycache__ --exclude .pytest_cache \
+  ./ root@<IP>:/root/latent-kvcomm/
+```
+
+**Environment.** Python 3.11 is absent on this image, and 3.12 lacks `ensurepip`,
+so the venv fails with a misleading message unless the package is installed
+first. `rocm6.4` is the **only** wheel index carrying a torch inside
+`requirements.txt`'s `>=2.4,<2.9` pin — rocm7.x jumps to 2.10+.
+
+```bash
+apt-get update -qq && apt-get install -y -qq python3.12-venv
+cd /root/latent-kvcomm
+PY=python3 TORCH_INDEX_URL=https://download.pytorch.org/whl/rocm6.4 ./scripts/setup_env.sh
+```
+
+Expect `torch 2.8.0+rocm6.4 | ROCm/HIP 6.4`, `accelerator available: True`,
+`[0] AMD Instinct MI300X VF 192 GiB`. No `lkv` code change is needed for AMD —
+torch's ROCm build maps the CUDA API onto HIP, so `--device cuda:0` and the
+`torch.cuda.*` calls in `lkv/instrument.py` work unmodified.
+
+**nltk corpora** (F1 lemmatises both sides, see D14):
 
 ```bash
 ./.venv/bin/python -m nltk.downloader punkt punkt_tab wordnet omw-1.4 averaged_perceptron_tagger averaged_perceptron_tagger_eng
@@ -47,7 +75,7 @@ The `transformers==4.53.3` pin is load-bearing — KVComm's own requirements say
 # must print: city be run faster mouse
 ```
 
-**3. Two bundled datasets that are not on the Hub.** `lkv/data/files/` does not exist yet. Copy from a KVComm clone:
+**Two bundled datasets** (not on the Hub; `lkv/data/files/` is absent by design):
 
 ```bash
 git clone --depth 1 https://github.com/Zephyroam/KVComm.git /tmp/kvcomm
@@ -55,65 +83,172 @@ mkdir -p lkv/data/files
 cp /tmp/kvcomm/dataloader/data/countries.jsonl /tmp/kvcomm/dataloader/data/tipsheets.jsonl lkv/data/files/
 ```
 
-`lkv/data/countries.py` raises `FileNotFoundError` if absent — deliberately, because returning `[]` would report accuracy 0.0 as though it were a measurement. Note `tipsheets` is **not yet registered** in `lkv/data/__init__.py`; registering it is part of Task 16.
+**Verify before running anything:** `./.venv/bin/python -m pytest -q` → 163 passed.
 
 ---
 
-## Task order
+## Task 0 — FIX K1 BEFORE ANY OTHER GPU WORK
 
-Run in this order. Each gate must pass before the next phase means anything.
+**All six Countries conditions scored exactly 0.0000, skyline included.** A
+skyline run is handed the full context *and* the question, so zero is impossible
+unless the harness is at fault. HotpotQA's baseline came in at 0.0020, so it is
+probably the same defect. Every KVComm number from yesterday is void.
 
-| Task | What it does | Gate |
+**Step 1 — store the predictions.** This cannot be diagnosed without them, and
+`build_record` does not save them: `per_item` holds only `correct`, `i`, `score`.
+Add the generated text and the gold per item, or at minimum for the first N.
+Yesterday this forced a blind guess; do not repeat that.
+
+**Step 2 — look at what the model actually emitted** for `kv_countries_skyline`.
+Two leading hypotheses, in order:
+
+1. **`max_new_tokens=5` truncates before an answer appears.** Countries sets 5,
+   matching upstream's `CountriesEvaluator.max_tokens`. If the model emits a
+   preamble, a newline, or a chat-template artefact first, the answer never lands
+   inside the budget. Test by re-running skyline at `--max_new_tokens 32`; if it
+   jumps, that is the cause. Note this would be a deviation from upstream's 5 and
+   must be recorded as one.
+2. **Scoring mismatch.** `gold` is a country name like `United States`. Walk
+   `lkv/scoring.py`'s F1 path by hand on one real (prediction, gold) pair.
+
+**Step 3 — only once skyline is plausible (~0.55–0.69) does K1 mean anything.**
+Then re-run the full gate. Countries is cheap: 200 items at 5 tokens took **6
+seconds** per condition.
+
+---
+
+## Results so far — all committed in `runs/`
+
+**L1, GSM8K Qwen3-8B, n=200, sampled** (targets: relay 0.938, single 0.811):
+
+| latent_steps | 0 | 10 | 20 | 40 | 80 | single | single no-think |
+|---|---|---|---|---|---|---|---|
+| accuracy | **0.950** | 0.910 | 0.945 | 0.925 | 0.940 | **0.960** | 0.890 |
+
+Also `lm_gsm8k_4b` 0.9250 and `lm_gsm8k_14b` 0.9300.
+
+**L2, MBPP+ n=378** (targets: relay 0.746, single 0.648):
+
+| | relay | single |
 |---|---|---|
-| **10** | GSM8K 8B sweep over `latent_steps` ∈ {0,10,20,40,80}, plus single-agent. Writes `scripts/gate_latentmas.sh`. | **L1**: some `latent_steps` ≥ 0.91 at n=200, **and** single-agent within [0.76, 0.86]. Targets 93.8 / 81.1. |
-| **11** | MBPP+ 8B at 378 items, plus 4B and 14B GSM8K. Uses the winning `latent_steps` as `S_BEST`. | **L2**: MBPP+ ≥ 0.70, **and** relay > single-agent by paired McNemar. Targets 74.6 / 64.8. |
-| **15** | KVComm Countries (200 items — cheapest, widest dynamic range). Also **decides the metric**: mean F1 vs fraction with F1 > 0.5. Writes `scripts/gate_kvcomm.sh`. | **K1**: baseline ≤ 0.05, skyline ∈ [0.55, 0.69], r30 ≥ 0.42, r50 ≥ 0.55, monotone r30 ≤ r50 ≤ r70 (0.02 tolerance). |
-| **16** | KVComm HotpotQA (500) and Tipsheets (500). Registers the tipsheets loader. | **K2**: baseline ∈ [0.13, 0.25], skyline ≥ 0.66, r30 ≥ 0.26, r50 ≥ 0.53, r70 ≥ 0.62, **strictly** increasing. |
-| **20** | Integration sweep: 2 scopes × 3 ratios, plus random-selection and pair-calibration controls. Run every trimmed condition **twice**, `--causal_ragged` off and on. | — |
-| **21** | ~~Causal multi-step decoding, both call sites.~~ **Code and tests are DONE** (`lkv/kvcomm/ragged_decode.py`, 14 tests). Only **Step 5** remains: re-run the K1 Countries conditions at 0.3/0.5/0.7 with `--causal_ragged` and record `ratio \| stock \| corrected \| delta` against the published 0.51/0.62/0.62. | Untrimmed path matches `generate_text_batch` exactly — already verified on CPU. |
+| accuracy | **0.7487** | **0.7566** |
 
-Start Task 20 only once L1, L2, K1 and K2 have all passed. If a gate fails, its diagnostic ladder is in the task text — work it in order and record each outcome in `docs/FINDINGS.md`.
+**K1, Countries** — all six conditions `0.0000`. **Void, see Task 0.**
+**K2, HotpotQA** — baseline `0.0020` only; the rest never ran.
 
-Task 21's Step 5 write-up must state the interpretation plainly whichever way it falls. If the corrected path scores **higher**, KVComm's published numbers understate the method. If **lower**, their numbers depend on the bug — the more uncomfortable finding, and it must be reported, not buried. If the two are within noise, say so: that would mean D8 is real but immaterial at these retention ratios, which is also worth knowing.
+### What this means, stated carefully
+
+On two independent tasks **the paper's LatentMAS numbers reproduce closely**
+(0.950 vs 0.938; 0.7487 vs 0.746) while **its baselines do not** — ours are 15
+and 11 points stronger — and the relay lands marginally *behind* a single agent
+both times.
+
+The internal comparison is matched: both arms share decoding, prompts, seed,
+items and thinking setting. So within this harness, LatentMAS shows no advantage
+over one agent on either task.
+
+Two things **not** established, which must not be asserted:
+
+- **That the method fails.** GSM8K is saturated for Qwen3-8B (0.89–0.96), so it
+  cannot test the claim at this scale. MBPP+ is not saturated and the relay still
+  reached 0.7487, so the relay is functioning.
+- **That thinking mode explains the baseline gap.** It explains part: GSM8K
+  single-agent falls 0.9600 → 0.8900 with `--no_thinking`, still well above
+  0.811. Roughly half the gap is unaccounted for.
+
+The missing experiment is the matched no-thinking pair. Three runs were in flight
+when the box was destroyed and produced no files: `lm_gsm8k_8b_s0_nothink`,
+`lm_mbppplus_8b_nothink`, `lm_mbppplus_8b_single_nothink`. **Re-run these** —
+they complete the 2×2 of {thinking, no-thinking} × {relay, single} and are the
+cleanest test of whether the published advantage survives a fair baseline.
+
+One more angle worth checking, not yet investigated: upstream ships a `--think`
+flag documented as "manually add think token in the prompt **for LatentMAS**",
+applied only in `methods/latent_mas.py`. If the paper used it for the relay but
+not the baseline, that asymmetry alone could produce the reported gap. Their
+README commands do not use it. This is a hypothesis, not a finding.
+
+---
+
+## Task order tomorrow
+
+| | what | gate |
+|---|---|---|
+| **0** | Store predictions; diagnose and fix the Countries zeros. | skyline plausible (~0.55–0.69) |
+| **1** | Re-run K1 Countries (6 conditions, ~1 min total). | **K1**: baseline ≤ 0.05, skyline ∈ [0.55, 0.69], r30 ≥ 0.42, r50 ≥ 0.55, monotone r30 ≤ r50 ≤ r70 (0.02 tol) |
+| **2** | The three no-thinking runs above (~50 min, run concurrently). | completes the 2×2 |
+| **3** | K2 HotpotQA (500) and Tipsheets (500). Tipsheets needs its loader registered in `lkv/data/__init__.py` — that is Task 16 proper. | **K2**: baseline ∈ [0.13, 0.25], skyline ≥ 0.66, r30 ≥ 0.26, r50 ≥ 0.53, r70 ≥ 0.62, strictly increasing |
+| **4** | Task 20 integration sweep: 2 scopes × 3 ratios + random and pair-calibration controls, **each run twice, `--causal_ragged` off and on**. | — |
+| **5** | Task 21 Step 5: re-run K1 conditions with `--causal_ragged`; record `ratio \| stock \| corrected \| delta` against the published 0.51/0.62/0.62. | — |
+
+`scripts/gate_latentmas.sh`, `scripts/gate_kvcomm.sh` and `scripts/chain_gates.sh`
+all exist and skip any condition whose JSON is present, so they are safe to
+re-run after an interruption.
+
+---
+
+## Operational lessons — do not relearn these
+
+**Pull results off the box continuously, not at the end.** `runs/*.json` is now
+tracked in git (`.gitignore` carries an explicit exception). Rsync and commit
+after every gate, not when the user announces they are about to destroy the box.
+
+**Concurrency is the speedup lever, not batch size.** Runs peak at 16–38 GB of
+192 GB at `bs=16`, so 4–5 fit at once. Do **not** raise `--generate_bs` on
+sampled runs: batch size changes the order items consume the RNG stream, so
+results stop being comparable with everything already measured. It is safe on
+`--greedy` runs, which is what the KVComm gates use.
+
+**Timings measured:** GSM8K 200 items ≈ 14–20 min; MBPP+ 378 items ≈ 100–141 min;
+Countries 200 items ≈ 6 s; no-thinking runs ≈ 4× faster than thinking. Weights
+download at ~16 GB in 13 s, so downloads are never the bottleneck.
+
+**A `| tail` in a shell pipeline swallows the real exit status.** A setup failure
+reported exit 0 that way yesterday.
 
 ---
 
 ## Rulings that bind — do not re-litigate
 
-Decided with evidence. Re-opening them wastes GPU time.
-
-1. **Task 20's analyzer must not use the plan's literal `or` form.** Write the retention lookup as `1.0 if d.get("layer_retention") is None else d["layer_retention"]`. The plan snippet says `(d.get('layer_retention') or 1.0)`, which treats a legitimate `0.0` as missing and would print full retention for a run that achieved zero. Unreachable in the planned sweep, but the snippet gets copied verbatim if this is not read.
-2. **`latent_steps` has no default and must be searched.** Upstream's default is `0`, which discards the relay cache. The value behind the published numbers is recorded nowhere; the two shipped example logs show `0` and `10`, neither matching the table cell it accompanies.
-3. **`--calib_source` defaults to `relay`, which is *not* KVComm-as-published.** Deliberate. `--calib_source pair` gives the drop-in comparison and Task 20 reports both. `pair` is rejected at parse time for GSM8K/MBPP+ because their items carry no `context`.
-4. **The verbatim upstream reference block in `tests/test_importance.py` stays.** Approved differential-testing choice. Do not deduplicate it.
-5. **Reproduction uses sampled decoding; internal A/B uses `--greedy`.** Never mix the two inside one comparison.
-6. **Regenerate a task brief after any plan amendment** — `scripts/task-brief PLAN N` from the SDD skill. Two implementers worked from stale briefs before this rule was written down.
+1. **Task 20's analyzer must not use the plan's `or` form.** Write
+   `1.0 if d.get("layer_retention") is None else d["layer_retention"]`. The same
+   trap applies to `.get(key, default)`: `baseline` and `skyline` records carry
+   `layer_retention` **with an explicit None**, and `.get`'s default applies only
+   when the key is absent — so the plan's `d.get('layer_retention', 1.0)` returns
+   None and `f"{None:10.4f}"` raises. `scripts/gate_kvcomm.sh` already handles
+   this; the plan text still contains the bug.
+2. **`latent_steps` has no default and must be searched.** Upstream's default 0
+   discards the relay cache. Measured: the sweep is flat within 1–2 SE, so there
+   is no evidence any value helps.
+3. **`--calib_source` defaults to `relay`, which is not KVComm-as-published.**
+   Deliberate. `pair` gives the drop-in comparison; it is rejected at parse time
+   for GSM8K/MBPP+, whose items carry no `context`.
+4. **The verbatim upstream reference block in `tests/test_importance.py` stays.**
+5. **Reproduction uses sampled decoding; internal A/B uses `--greedy`.** The
+   LatentMAS gates sample; the KVComm gates are greedy (upstream's `eval.py` sets
+   `do_sample=False`). Never mix within one comparison.
+6. **`--causal_ragged` defaults OFF.** Off reproduces KVComm as published, whose
+   table came from the non-causal path. On is correct and is what every
+   integration number must use.
+7. **The Llama mirror is a mirror, not asserted byte-identical.** If K1/K2 miss
+   after the harness is fixed, "the mirror differs from KVComm's weights" belongs
+   on the diagnostic ladder — below the harness causes, above concluding the
+   method does not reproduce.
 
 ---
 
-## Hazards that will bite
+## Hazards
 
-**D8 — the fix now exists, but it is OFF by default.** `--causal_ragged` decodes a trimmed cache with per-layer causal masks, at both call sites. Default off is deliberate: KVComm's published table was produced on the non-causal path, so reproducing *their* numbers requires it. For the integration there is no upstream to be faithful to and the error compounds over three boundaries, so **every integration number must be produced with `--causal_ragged`**, or Task 20 must report both columns with the stock one labelled non-causal. `build_record` stamps `ragged_path` (`n/a` / `stock-noncausal` / `causal-ragged`) so this travels with the result files, and `parse_args` rejects the flag for systems that never trim, so the label cannot claim a correction that never applied.
+**The failure mode of this codebase is silent wrongness, not crashes.** Yesterday
+alone: a loader that read three keys the file does not contain (D17), a relay
+whose results depended on batch composition (D16), and six accuracy scores of
+exactly 0.0000 that a green test suite had nothing to say about. When a result
+looks clean, ask what would have to be true for it to be wrong.
 
-Measured on the tiny fixture, one relay hop over a ragged cache: stock vs causal = **4.333** max delta. Whatever D8 is worth at scale, it is not nothing.
+**D8 remains open for the integration.** Every `top_layers < 1.0` run without
+`--causal_ragged` measures non-causal attention at each boundary. Measured on the
+tiny fixture: stock vs causal = 4.333 max delta on one relay hop. `ragged_path`
+in each record says which path produced it.
 
-**D16 is fixed but its lesson stands.** The relay was reproducible only by accident: an item's representation depended on the length of its batch peers, so `--generate_bs` and item order silently changed results. Fixed and pinned by a test. The lesson is that `lkv` calls the model directly in several places, and a bare `model(...)` does **not** get `generate()`'s position handling. Any new direct forward needs explicit `position_ids` — see `lkv/latentmas.cumsum_positions`.
-
-**The failure mode of this codebase is silent wrongness, not crashes.** Fourteen defects found during the CPU phase were functions that ran fine and returned plausible, meaningless numbers — a query missing its rotary embedding, a scope that stopped trimming after one hop, a validity test that passed regardless of correctness. A green suite is weak evidence. When a gate result looks clean, ask what would have to be true for it to be wrong.
-
-**Two parked minors, both narrow:** `ragged_path` and `layer_retention` can contradict each other under `--system latentmas --n_agents 1 --calib_source pair` on a context task; and the analyzer `or` gotcha in ruling 1. Neither is reachable from the planned sweep.
-
----
-
-## Already true — needs no re-checking
-
-Verified mechanically, with evidence in `docs/FINDINGS.md` and the ledger:
-
-- LatentMAS: 4 roles in order, question re-supplied as text to all 4, latents skipped for the judger, relay cache never nulled, latent input is the last hidden state fed back as `inputs_embeds`.
-- KVComm: ranking **bit-identical** to the upstream formula across α ∈ {1.0, 0.8, 0.5, 0.0}; retained counts `[9, 16, 22]` at 0.3/0.5/0.7 on 32 layers; trim keeps layer 0 full and others at `sink=1`; full selection is the identity.
-- Defaults reproduce upstream: `realign=False, renorm_latent=True`, `n_agents=4`, `temperature=0.6`, `top_p=0.95`, `sequential`, `seed=42`, `mu=0.5`, `sigma=10.0`, `calib_size=1`, α per family (Llama 1.0, Qwen/Falcon 0.8).
-- No cross-task interface drift across the 15 implemented tasks.
-
-- Task 21's decoder: reproduces `generate_text_batch` token for token on an untrimmed cache at batch 2 with padding on both sides; causal (drift exactly 0.0) after 0, 3 and 7 appended tokens; batch-invariant under a padded history; per-row EOS stops one row without truncating its neighbour. Verified by mutation — reverting positions to arange, ignoring the query block's padding, broadcasting the mask from row 0, and rebuilding masks from current instead of base lengths are each caught.
-
-**Not verified:** that any of it reproduces the published accuracy. That is exactly what Tasks 10/11/15/16 establish, and no GPU has run.
+**Not verified:** that any KVComm number reproduces. K1 has never produced a
+valid measurement.
