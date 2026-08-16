@@ -5,7 +5,13 @@ venv/
 hf_cache/
 *.egg-info/
 .pytest_cache/
-runs/
+# Result records ARE tracked: they are GPU-hours of irreplaceable measurement,
+# a few hundred KB in total, and the plan's own commit steps add them. Anything
+# else that lands in runs/ (checkpoints, dumps) stays ignored.
+runs/*
+!runs/*.json
+!runs/logs/
+!runs/logs/*.log
 snapshots/
 wandb/
 .DS_Store

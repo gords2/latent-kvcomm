@@ -142,10 +142,15 @@ def generate_latent(model, projector, input_ids, attention_mask, latent_steps,
 
 
 def _render(tokenizer, cfg, items, role):
+    # enable_thinking is forwarded ONLY when False. Qwen3's template accepts it;
+    # other families' templates raise on an unexpected kwarg, and True is the
+    # template's own default anyway -- so omitting it keeps Llama/Falcon working
+    # while still allowing the Qwen3 experiment.
+    extra = {} if getattr(cfg, "enable_thinking", True) else {"enable_thinking": False}
     texts = [
         tokenizer.apply_chat_template(
             latent_agent_message(role, item["question"], cfg.task),
-            tokenize=False, add_generation_prompt=True,
+            tokenize=False, add_generation_prompt=True, **extra,
         )
         for item in items
     ]

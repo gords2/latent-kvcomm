@@ -1,0 +1,1079 @@
+{
+  "system": "latentmas",
+  "task": "gsm8k",
+  "model_name": "Qwen/Qwen3-8B",
+  "model_b": "Qwen/Qwen3-8B",
+  "max_samples": 200,
+  "seed": 42,
+  "device": "cuda:0",
+  "greedy": false,
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "max_new_tokens": 2048,
+  "generate_bs": 16,
+  "n_agents": 4,
+  "latent_steps": 0,
+  "realign": false,
+  "renorm_latent": true,
+  "prompt": "sequential",
+  "top_layers": 1.0,
+  "alpha": 0.8,
+  "mu": 0.5,
+  "sigma": 10.0,
+  "calib_size": 1,
+  "random_selection": false,
+  "calib_source": "relay",
+  "causal_ragged": false,
+  "trim_scope": "all",
+  "trim_every_hop": false,
+  "out_json": "runs/lm_gsm8k_8b_s0.json",
+  "n": 200,
+  "correct": 190,
+  "accuracy": 0.95,
+  "mean_score": 0.95,
+  "per_item": [
+    {
+      "i": 0,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 1,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 2,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 3,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 4,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 5,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 6,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 7,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 8,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 9,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 10,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 11,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 12,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 13,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 14,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 15,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 16,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 17,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 18,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 19,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 20,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 21,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 22,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 23,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 24,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 25,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 26,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 27,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 28,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 29,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 30,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 31,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 32,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 33,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 34,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 35,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 36,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 37,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 38,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 39,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 40,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 41,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 42,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 43,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 44,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 45,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 46,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 47,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 48,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 49,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 50,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 51,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 52,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 53,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 54,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 55,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 56,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 57,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 58,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 59,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 60,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 61,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 62,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 63,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 64,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 65,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 66,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 67,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 68,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 69,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 70,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 71,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 72,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 73,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 74,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 75,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 76,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 77,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 78,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 79,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 80,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 81,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 82,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 83,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 84,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 85,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 86,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 87,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 88,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 89,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 90,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 91,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 92,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 93,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 94,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 95,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 96,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 97,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 98,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 99,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 100,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 101,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 102,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 103,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 104,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 105,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 106,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 107,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 108,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 109,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 110,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 111,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 112,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 113,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 114,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 115,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 116,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 117,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 118,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 119,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 120,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 121,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 122,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 123,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 124,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 125,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 126,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 127,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 128,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 129,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 130,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 131,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 132,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 133,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 134,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 135,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 136,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 137,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 138,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 139,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 140,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 141,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 142,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 143,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 144,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 145,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 146,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 147,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 148,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 149,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 150,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 151,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 152,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 153,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 154,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 155,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 156,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 157,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 158,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 159,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 160,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 161,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 162,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 163,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 164,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 165,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 166,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 167,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 168,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 169,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 170,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 171,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 172,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 173,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 174,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 175,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 176,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 177,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 178,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 179,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 180,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 181,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 182,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 183,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 184,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 185,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 186,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 187,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 188,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 189,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 190,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 191,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 192,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 193,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 194,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 195,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 196,
+      "correct": false,
+      "score": 0.0
+    },
+    {
+      "i": 197,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 198,
+      "correct": true,
+      "score": 1.0
+    },
+    {
+      "i": 199,
+      "correct": true,
+      "score": 1.0
+    }
+  ],
+  "hop_records_first_batch": [
+    {
+      "hop": 0,
+      "role": "planner",
+      "latent_steps": 0,
+      "positions_before": 0,
+      "positions_after": 160,
+      "positions_after_trim": 160
+    },
+    {
+      "hop": 1,
+      "role": "critic",
+      "latent_steps": 0,
+      "positions_before": 160,
+      "positions_after": 323,
+      "positions_after_trim": 323
+    },
+    {
+      "hop": 2,
+      "role": "refiner",
+      "latent_steps": 0,
+      "positions_before": 323,
+      "positions_after": 484,
+      "positions_after_trim": 484
+    },
+    {
+      "hop": 3,
+      "role": "judger",
+      "latent_steps": 0,
+      "positions_before": 484,
+      "positions_after": 2693
+    }
+  ],
+  "total_sec": 955.1689855860002,
+  "sec_per_item": 4.775844927930001,
+  "layer_retention": 1.0,
+  "kept_layers": null,
+  "hook_records": [],
+  "peak_mem_bytes": 23652560896,
+  "cache_bytes_at_final_hop_mean": 1191898190.7692308,
+  "attention_positions_at_final_hop_mean": 18794.76923076923,
+  "cache_stat_batches": 13,
+  "ragged_path": "n/a"
+}

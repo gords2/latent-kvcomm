@@ -74,6 +74,16 @@ class RunConfig:
     realign: bool = False
     renorm_latent: bool = True
     prompt: str = "sequential"
+    # Qwen3's chat template emits a <think> block unless enable_thinking=False,
+    # which injects an empty "<think>\n\n</think>" to suppress it. Upstream never
+    # passes the argument, so it inherits the template default (ON) -- and so did
+    # every run before this flag existed. It matters enormously: GSM8K sits at
+    # ceiling for Qwen3-8B with thinking (measured 0.9600 single-agent against
+    # the paper's 0.811), leaving no headroom for ANY multi-agent method to show
+    # a gain. True preserves upstream's behaviour; False tests whether the
+    # published baseline was measured without it. Recorded in every run record,
+    # because it was previously an unrecorded experimental variable.
+    enable_thinking: bool = True
     # KVComm
     top_layers: float = 1.0
     alpha: float = -1.0              # -1 -> resolve from model family
@@ -132,6 +142,10 @@ def parse_args(argv: list[str] | None = None) -> RunConfig:
     p.add_argument("--realign", action="store_true")
     p.add_argument("--no_renorm_latent", dest="renorm_latent", action="store_false")
     p.add_argument("--prompt", default="sequential", choices=["sequential", "hierarchical"])
+    p.add_argument("--no_thinking", dest="enable_thinking", action="store_false",
+                   help="pass enable_thinking=False to the chat template "
+                        "(Qwen3 only). Default ON matches upstream, which never "
+                        "passes the argument. See docs/FINDINGS.md.")
     p.add_argument("--top_layers", type=float, default=1.0)
     p.add_argument("--alpha", type=float, default=-1.0)
     p.add_argument("--mu", type=float, default=0.5)
