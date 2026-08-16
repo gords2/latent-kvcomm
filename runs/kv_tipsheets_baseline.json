@@ -1,0 +1,4048 @@
+{
+  "system": "baseline",
+  "task": "tipsheets",
+  "model_name": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+  "model_b": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+  "max_samples": -1,
+  "seed": 42,
+  "device": "cuda:0",
+  "greedy": true,
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "max_new_tokens": 10,
+  "generate_bs": 16,
+  "n_agents": 4,
+  "latent_steps": 0,
+  "realign": false,
+  "renorm_latent": true,
+  "prompt": "sequential",
+  "enable_thinking": true,
+  "top_layers": 1.0,
+  "alpha": 1.0,
+  "mu": 0.5,
+  "sigma": 10.0,
+  "calib_size": 1,
+  "random_selection": false,
+  "calib_source": "relay",
+  "causal_ragged": false,
+  "trim_scope": "all",
+  "trim_every_hop": false,
+  "out_json": "runs/kv_tipsheets_baseline.json",
+  "n": 500,
+  "correct": 4,
+  "accuracy": 0.008,
+  "mean_score": 0.014,
+  "per_item": [
+    {
+      "i": 0,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 1,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 2,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 3,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 4,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 5,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 6,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 7,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 8,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 9,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 10,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 11,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 12,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 13,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 14,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 15,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 16,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 17,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 18,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 19,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names.",
+      "prediction_chars": 38,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 20,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 21,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 22,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 23,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 24,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 25,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a recommendation as I",
+      "prediction_chars": 45,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 26,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 27,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 28,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 29,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Verto LLC",
+      "prediction_chars": 9,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 30,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 31,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 32,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 33,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 34,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 35,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 36,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 37,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 38,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 39,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 40,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 41,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 42,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 43,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 44,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 45,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 46,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 47,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 48,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 49,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 50,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 51,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 52,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 53,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 54,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 55,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 56,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Apex LLC",
+      "prediction_chars": 8,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 57,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 58,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 59,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 60,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names you",
+      "prediction_chars": 41,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 61,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 62,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 63,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 64,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 65,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 66,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 67,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 68,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 69,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 70,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 71,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 72,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 73,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 74,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 75,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 76,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 77,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 78,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Verto LLC",
+      "prediction_chars": 9,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 79,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 80,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Helix LLC",
+      "prediction_chars": 9,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 81,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 82,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 83,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 84,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as this",
+      "prediction_chars": 42,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 85,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 86,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 87,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 88,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 89,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 90,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 91,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 92,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 93,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 94,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can help",
+      "prediction_chars": 40,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 95,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 96,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 97,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 98,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 99,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 100,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 101,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 102,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 103,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 104,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 105,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names you",
+      "prediction_chars": 41,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 106,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 107,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 108,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 109,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 110,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 111,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 112,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 113,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 114,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 115,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 116,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 117,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 118,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 119,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 120,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 121,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 122,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 123,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 124,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 125,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 126,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 127,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 128,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 129,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 130,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names you",
+      "prediction_chars": 41,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 131,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 132,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 133,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 134,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names.",
+      "prediction_chars": 38,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 135,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 136,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 137,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 138,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 139,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 140,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 141,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 142,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Apex LLC",
+      "prediction_chars": 8,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 143,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 144,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 145,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 146,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 147,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 148,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 149,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 150,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 151,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 152,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 153,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 154,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 155,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 156,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 157,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 158,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 159,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 160,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names.",
+      "prediction_chars": 38,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 161,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Pillar LLC",
+      "prediction_chars": 10,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 162,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 163,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 164,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 165,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 166,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 167,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 168,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 169,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 170,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 171,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 172,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 173,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 174,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 175,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 176,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 177,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 178,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 179,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a recommendation as I",
+      "prediction_chars": 45,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 180,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 181,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 182,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 183,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 184,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 185,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 186,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 187,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 188,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 189,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 190,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 191,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 192,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 193,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 194,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 195,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 196,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 197,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 198,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 199,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 200,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names.",
+      "prediction_chars": 38,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 201,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 202,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 203,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 204,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 205,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 206,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 207,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 208,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 209,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 210,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 211,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 212,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 213,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 214,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 215,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 216,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 217,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 218,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 219,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 220,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 221,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 222,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 223,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 224,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 225,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 226,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 227,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 228,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 229,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 230,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 231,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 232,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 233,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 234,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 235,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 236,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 237,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 238,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 239,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 240,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 241,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 242,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 243,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 244,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 245,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 246,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 247,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 248,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 249,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 250,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 251,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 252,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 253,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 254,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 255,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 256,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 257,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 258,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 259,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 260,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 261,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 262,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 263,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 264,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 265,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 266,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 267,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a recommendation as I",
+      "prediction_chars": 45,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 268,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 269,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 270,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 271,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 272,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 273,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 274,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 275,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 276,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 277,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 278,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 279,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 280,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 281,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 282,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 283,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 284,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 285,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 286,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 287,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 288,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 289,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 290,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 291,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 292,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 293,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 294,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 295,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 296,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 297,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 298,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 299,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 300,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 301,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 302,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 303,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 304,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 305,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 306,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 307,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 308,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 309,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 310,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 311,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 312,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names you",
+      "prediction_chars": 41,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 313,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 314,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 315,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 316,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 317,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 318,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 319,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 320,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 321,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 322,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 323,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 324,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 325,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 326,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 327,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 328,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 329,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 330,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 331,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 332,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 333,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 334,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 335,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 336,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 337,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 338,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 339,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 340,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 341,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 342,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 343,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 344,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 345,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 346,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 347,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 348,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 349,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 350,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 351,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 352,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 353,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 354,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 355,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 356,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 357,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 358,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 359,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 360,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 361,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 362,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 363,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 364,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 365,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Kora LLC",
+      "prediction_chars": 8,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 366,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 367,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 368,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 369,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 370,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 371,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Verto LLC",
+      "prediction_chars": 9,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 372,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 373,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 374,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 375,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pixel LLC"
+    },
+    {
+      "i": 376,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 377,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 378,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 379,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 380,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 381,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 382,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 383,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 384,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 385,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 386,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 387,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as this",
+      "prediction_chars": 42,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 388,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 389,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 390,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 391,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 392,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 393,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 394,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 395,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 396,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 397,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 398,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 399,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 400,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 401,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 402,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 403,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 404,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 405,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 406,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 407,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nova LLC"
+    },
+    {
+      "i": 408,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 409,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 410,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names.",
+      "prediction_chars": 38,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 411,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 412,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zora LLC"
+    },
+    {
+      "i": 413,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 414,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names.",
+      "prediction_chars": 38,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 415,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 416,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Nori LLC"
+    },
+    {
+      "i": 417,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 418,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vega LLC"
+    },
+    {
+      "i": 419,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 420,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 421,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 422,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 423,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 424,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Aris LLC"
+    },
+    {
+      "i": 425,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 426,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 427,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 428,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 429,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 430,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 431,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 432,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 433,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Quark LLC"
+    },
+    {
+      "i": 434,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 435,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 436,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 437,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 438,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 439,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 440,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Rivo LLC"
+    },
+    {
+      "i": 441,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cobalt LLC"
+    },
+    {
+      "i": 442,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Volt LLC"
+    },
+    {
+      "i": 443,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 444,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Juno LLC"
+    },
+    {
+      "i": 445,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 446,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 447,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 448,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Rivo LLC",
+      "prediction_chars": 8,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 449,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 450,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 451,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 452,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 453,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 454,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't fulfill that request. I can provide",
+      "prediction_chars": 43,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 455,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 456,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Nexa LLC"
+    },
+    {
+      "i": 457,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 458,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Lumo LLC"
+    },
+    {
+      "i": 459,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 460,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Apex LLC"
+    },
+    {
+      "i": 461,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Mira LLC"
+    },
+    {
+      "i": 462,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a recommendation as I",
+      "prediction_chars": 45,
+      "gold": "Kite LLC"
+    },
+    {
+      "i": 463,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 464,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 465,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 466,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 467,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Haven LLC"
+    },
+    {
+      "i": 468,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to see the company names you",
+      "prediction_chars": 41,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 469,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Faro LLC"
+    },
+    {
+      "i": 470,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Lyra LLC"
+    },
+    {
+      "i": 471,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 472,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 473,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 474,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Vector LLC"
+    },
+    {
+      "i": 475,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Sable LLC"
+    },
+    {
+      "i": 476,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Raven LLC"
+    },
+    {
+      "i": 477,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Zeno LLC"
+    },
+    {
+      "i": 478,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that as I don",
+      "prediction_chars": 36,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 479,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Atlas LLC"
+    },
+    {
+      "i": 480,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 481,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Talon LLC"
+    },
+    {
+      "i": 482,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 483,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 484,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Pillar LLC"
+    },
+    {
+      "i": 485,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Glint LLC"
+    },
+    {
+      "i": 486,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Cinder LLC"
+    },
+    {
+      "i": 487,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I cannot provide information that could be used to make",
+      "prediction_chars": 55,
+      "gold": "Ion LLC"
+    },
+    {
+      "i": 488,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Myra LLC"
+    },
+    {
+      "i": 489,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Helix LLC",
+      "prediction_chars": 9,
+      "gold": "Helix LLC"
+    },
+    {
+      "i": 490,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Tera LLC"
+    },
+    {
+      "i": 491,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Verto LLC"
+    },
+    {
+      "i": 492,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Kairo LLC"
+    },
+    {
+      "i": 493,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Flux LLC"
+    },
+    {
+      "i": 494,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Zylo LLC"
+    },
+    {
+      "i": 495,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Trace LLC"
+    },
+    {
+      "i": 496,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as I",
+      "prediction_chars": 39,
+      "gold": "Orion LLC"
+    },
+    {
+      "i": 497,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Pavo LLC"
+    },
+    {
+      "i": 498,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to provide a response as the",
+      "prediction_chars": 41,
+      "gold": "Kora LLC"
+    },
+    {
+      "i": 499,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I'm not able to answer that question as it",
+      "prediction_chars": 42,
+      "gold": "Mira LLC"
+    }
+  ],
+  "hop_records_first_batch": [],
+  "total_sec": 368.26175031,
+  "sec_per_item": 0.73652350062,
+  "layer_retention": null,
+  "kept_layers": null,
+  "hook_records": [],
+  "peak_mem_bytes": 16386263040,
+  "cache_bytes_at_final_hop_mean": 0.0,
+  "attention_positions_at_final_hop_mean": 0.0,
+  "cache_stat_batches": 0,
+  "ragged_path": "n/a"
+}
