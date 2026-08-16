@@ -15,6 +15,25 @@ OUT=runs; mkdir -p "$OUT"
 M=${M:-NousResearch/Meta-Llama-3.1-8B-Instruct}
 TASK=${TASK:-countries}
 
+# Whether the trimmed conditions decode with per-layer causal masks (D8).
+#
+# Defaults ON, reversing this project's earlier assumption. The reasoning used
+# to be "off reproduces KVComm as published, since their table came from the
+# stock path" -- falsified by measurement (Countries, n=200, greedy, the
+# Llama-3.1-8B mirror):
+#
+#   ratio | stock  | causal | published
+#   0.3   | 0.030  | 0.315  | 0.51
+#   0.5   | 0.150  | 0.615  | 0.62
+#   0.7   | 0.155  | 0.620  | 0.62
+#
+# The non-causal path reproduces nothing; the corrected one lands on two of the
+# three published cells. Set CAUSAL=0 to measure the stock path -- that is the
+# D8 gap experiment, not the reproduction.
+CAUSAL=${CAUSAL:-1}
+CAUSAL_FLAG=""
+[ "$CAUSAL" = "1" ] && CAUSAL_FLAG="--causal_ragged"
+
 run() {
   local tag=$1; shift
   local f="$OUT/${tag}.json"
@@ -27,9 +46,9 @@ run() {
 run "kv_${TASK}_baseline" --system baseline
 run "kv_${TASK}_skyline"  --system skyline
 for R in 0.3 0.5 0.7; do
-  run "kv_${TASK}_r${R/0./}0" --system kvcomm --top_layers "$R"
+  run "kv_${TASK}_r${R/0./}0" --system kvcomm --top_layers "$R" $CAUSAL_FLAG
 done
-run "kv_${TASK}_rand50" --system kvcomm --top_layers 0.5 --random_selection
+run "kv_${TASK}_rand50" --system kvcomm --top_layers 0.5 --random_selection $CAUSAL_FLAG
 
 TASK="$TASK" $PY - <<'EOF'
 import glob, json, os
@@ -96,6 +115,34 @@ if pub:
         for name, ok in checks:
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
         print(f"  => {'PASS' if all(o for _, o in checks) else 'FAIL'}")
+
+# K2 (hotpotqa/tipsheets) has no PUBLISHED row here -- the paper's per-task
+# column for it was never transcribed into this repo, and inventing one to
+# print a max|dev| against would manufacture a comparison. The thresholds
+# below are the ones fixed in docs/NEXT.md before any of it was measured,
+# which is what keeps them a gate rather than a description of the result.
+K2_THRESHOLDS = {
+    "hotpotqa": [
+        ("baseline in [0.13, 0.25]", lambda v: 0.13 <= v["baseline"] <= 0.25),
+        ("skyline >= 0.66", lambda v: v["skyline"] >= 0.66),
+        ("r30 >= 0.26", lambda v: v["r30"] >= 0.26),
+        ("r50 >= 0.53", lambda v: v["r50"] >= 0.53),
+        ("r70 >= 0.62", lambda v: v["r70"] >= 0.62),
+        ("strictly increasing r30 < r50 < r70",
+         lambda v: v["r30"] < v["r50"] < v["r70"]),
+    ],
+}
+if task in K2_THRESHOLDS:
+    for field, label in (("accuracy", "acc(F1>0.5)"), ("mean_score", "meanF1")):
+        v = {k: get(k, field) for k in ("baseline", "skyline", "r30", "r50", "r70")}
+        if any(x is None for x in v.values()):
+            print(f"\nGATE K2 under {label}: INCOMPLETE")
+            continue
+        print(f"\nGATE K2 under {label}:")
+        results = [(name, bool(fn(v))) for name, fn in K2_THRESHOLDS[task]]
+        for name, ok in results:
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+        print(f"  => {'PASS' if all(o for _, o in results) else 'FAIL'}")
 
 rand, r50 = get("rand50", "accuracy"), get("r50", "accuracy")
 if rand is not None and r50 is not None:

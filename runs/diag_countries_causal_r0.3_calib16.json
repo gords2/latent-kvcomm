@@ -1,0 +1,1658 @@
+{
+  "system": "kvcomm",
+  "task": "countries",
+  "model_name": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+  "model_b": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+  "max_samples": -1,
+  "seed": 42,
+  "device": "cuda:0",
+  "greedy": true,
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "max_new_tokens": 5,
+  "generate_bs": 16,
+  "n_agents": 4,
+  "latent_steps": 0,
+  "realign": false,
+  "renorm_latent": true,
+  "prompt": "sequential",
+  "enable_thinking": true,
+  "top_layers": 0.3,
+  "alpha": 1.0,
+  "mu": 0.5,
+  "sigma": 10.0,
+  "calib_size": 16,
+  "random_selection": false,
+  "calib_source": "relay",
+  "causal_ragged": true,
+  "trim_scope": "all",
+  "trim_every_hop": false,
+  "out_json": "runs/diag_countries_causal_r0.3_calib16.json",
+  "n": 200,
+  "correct": 63,
+  "accuracy": 0.315,
+  "mean_score": 0.3158333333333333,
+  "per_item": [
+    {
+      "i": 0,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "United States"
+    },
+    {
+      "i": 1,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 2,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Australia"
+    },
+    {
+      "i": 3,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Sybil is located in",
+      "prediction_chars": 19,
+      "gold": "Australia"
+    },
+    {
+      "i": 4,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Egypt",
+      "prediction_chars": 5,
+      "gold": "Egypt"
+    },
+    {
+      "i": 5,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Egypt"
+    },
+    {
+      "i": 6,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Netherlands"
+    },
+    {
+      "i": 7,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no passage provided",
+      "prediction_chars": 28,
+      "gold": "Italy"
+    },
+    {
+      "i": 8,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Japan"
+    },
+    {
+      "i": 9,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Egypt"
+    },
+    {
+      "i": 10,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Italy",
+      "prediction_chars": 5,
+      "gold": "Italy"
+    },
+    {
+      "i": 11,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 12,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Brazil"
+    },
+    {
+      "i": 13,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Portugal",
+      "prediction_chars": 8,
+      "gold": "Brazil"
+    },
+    {
+      "i": 14,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Italy",
+      "prediction_chars": 5,
+      "gold": "Italy"
+    },
+    {
+      "i": 15,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Egypt"
+    },
+    {
+      "i": 16,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Egypt"
+    },
+    {
+      "i": 17,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Sweden",
+      "prediction_chars": 6,
+      "gold": "Sweden"
+    },
+    {
+      "i": 18,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Italy"
+    },
+    {
+      "i": 19,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 20,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 21,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 22,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Italy"
+    },
+    {
+      "i": 23,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Mexico",
+      "prediction_chars": 6,
+      "gold": "Colombia"
+    },
+    {
+      "i": 24,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "India",
+      "prediction_chars": 5,
+      "gold": "Sweden"
+    },
+    {
+      "i": 25,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Croatia",
+      "prediction_chars": 7,
+      "gold": "Kosovo"
+    },
+    {
+      "i": 26,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "North Macedonia"
+    },
+    {
+      "i": 27,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Australia"
+    },
+    {
+      "i": 28,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Turkey"
+    },
+    {
+      "i": 29,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Greece",
+      "prediction_chars": 6,
+      "gold": "Greece"
+    },
+    {
+      "i": 30,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Mexico"
+    },
+    {
+      "i": 31,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Italy"
+    },
+    {
+      "i": 32,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "United States"
+    },
+    {
+      "i": 33,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Spain"
+    },
+    {
+      "i": 34,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Germany",
+      "prediction_chars": 7,
+      "gold": "Germany"
+    },
+    {
+      "i": 35,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no passage provided",
+      "prediction_chars": 28,
+      "gold": "Brazil"
+    },
+    {
+      "i": 36,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 37,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 38,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Spain"
+    },
+    {
+      "i": 39,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The United States",
+      "prediction_chars": 17,
+      "gold": "United States"
+    },
+    {
+      "i": 40,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Russia",
+      "prediction_chars": 6,
+      "gold": "Soviet Union"
+    },
+    {
+      "i": 41,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Unfortunately, I don't",
+      "prediction_chars": 22,
+      "gold": "Albania"
+    },
+    {
+      "i": 42,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Russia"
+    },
+    {
+      "i": 43,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Iceland",
+      "prediction_chars": 7,
+      "gold": "Faroe Islands"
+    },
+    {
+      "i": 44,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "France"
+    },
+    {
+      "i": 45,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Portugal"
+    },
+    {
+      "i": 46,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Bosnia and Herz",
+      "prediction_chars": 15,
+      "gold": "Bosnia and Herzegovina"
+    },
+    {
+      "i": 47,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 48,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Egypt"
+    },
+    {
+      "i": 49,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Portugal",
+      "prediction_chars": 8,
+      "gold": "Brazil"
+    },
+    {
+      "i": 50,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 51,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "China",
+      "prediction_chars": 5,
+      "gold": "Canada"
+    },
+    {
+      "i": 52,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Australia"
+    },
+    {
+      "i": 53,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 54,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Norway",
+      "prediction_chars": 6,
+      "gold": "Sweden"
+    },
+    {
+      "i": 55,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Oceania"
+    },
+    {
+      "i": 56,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see any",
+      "prediction_chars": 15,
+      "gold": "Turkey"
+    },
+    {
+      "i": 57,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 58,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Spain"
+    },
+    {
+      "i": 59,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Tanzania"
+    },
+    {
+      "i": 60,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Egypt"
+    },
+    {
+      "i": 61,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "United States"
+    },
+    {
+      "i": 62,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 63,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Australia"
+    },
+    {
+      "i": 64,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Portugal",
+      "prediction_chars": 8,
+      "gold": "Portugal"
+    },
+    {
+      "i": 65,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Kosovo"
+    },
+    {
+      "i": 66,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Brazil",
+      "prediction_chars": 6,
+      "gold": "Brazil"
+    },
+    {
+      "i": 67,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 68,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Pakistan",
+      "prediction_chars": 8,
+      "gold": "India"
+    },
+    {
+      "i": 69,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Uruguay"
+    },
+    {
+      "i": 70,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 71,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Malta",
+      "prediction_chars": 5,
+      "gold": "Malta"
+    },
+    {
+      "i": 72,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Egypt"
+    },
+    {
+      "i": 73,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 74,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Norway",
+      "prediction_chars": 6,
+      "gold": "Denmark"
+    },
+    {
+      "i": 75,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Egypt"
+    },
+    {
+      "i": 76,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Egypt"
+    },
+    {
+      "i": 77,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Egypt"
+    },
+    {
+      "i": 78,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 79,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Norway",
+      "prediction_chars": 6,
+      "gold": "Sweden"
+    },
+    {
+      "i": 80,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Bosnia and Herz",
+      "prediction_chars": 15,
+      "gold": "Kosovo"
+    },
+    {
+      "i": 81,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "Ireland"
+    },
+    {
+      "i": 82,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "Poland"
+    },
+    {
+      "i": 83,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Germany",
+      "prediction_chars": 7,
+      "gold": "Germany"
+    },
+    {
+      "i": 84,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I couldn't find any",
+      "prediction_chars": 19,
+      "gold": "Australia"
+    },
+    {
+      "i": 85,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "United States"
+    },
+    {
+      "i": 86,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see any",
+      "prediction_chars": 15,
+      "gold": "Spain"
+    },
+    {
+      "i": 87,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "New Zealand",
+      "prediction_chars": 11,
+      "gold": "Australia"
+    },
+    {
+      "i": 88,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 89,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Italy",
+      "prediction_chars": 5,
+      "gold": "Italy"
+    },
+    {
+      "i": 90,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Brazil"
+    },
+    {
+      "i": 91,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Portugal",
+      "prediction_chars": 8,
+      "gold": "France"
+    },
+    {
+      "i": 92,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Czech Republic",
+      "prediction_chars": 14,
+      "gold": "Poland"
+    },
+    {
+      "i": 93,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Brazil",
+      "prediction_chars": 6,
+      "gold": "Brazil"
+    },
+    {
+      "i": 94,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Egypt"
+    },
+    {
+      "i": 95,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "United States"
+    },
+    {
+      "i": 96,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Brazil",
+      "prediction_chars": 6,
+      "gold": "Brazil"
+    },
+    {
+      "i": 97,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Brazil"
+    },
+    {
+      "i": 98,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Bosnia and Herz",
+      "prediction_chars": 15,
+      "gold": "Kosovo"
+    },
+    {
+      "i": 99,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Russia",
+      "prediction_chars": 6,
+      "gold": "Russia"
+    },
+    {
+      "i": 100,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 101,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "New Zealand"
+    },
+    {
+      "i": 102,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 103,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 104,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 105,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Turkey",
+      "prediction_chars": 6,
+      "gold": "Turkey"
+    },
+    {
+      "i": 106,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Tibet",
+      "prediction_chars": 5,
+      "gold": "Greece"
+    },
+    {
+      "i": 107,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 108,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Turkey"
+    },
+    {
+      "i": 109,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Portugal",
+      "prediction_chars": 8,
+      "gold": "France"
+    },
+    {
+      "i": 110,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Pakistan",
+      "prediction_chars": 8,
+      "gold": "Pakistan"
+    },
+    {
+      "i": 111,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Bosnia and Herz",
+      "prediction_chars": 15,
+      "gold": "Kosovo"
+    },
+    {
+      "i": 112,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 113,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 114,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Egypt"
+    },
+    {
+      "i": 115,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "Ireland"
+    },
+    {
+      "i": 116,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 117,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Slovakia"
+    },
+    {
+      "i": 118,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Albania"
+    },
+    {
+      "i": 119,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Russia"
+    },
+    {
+      "i": 120,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Germany",
+      "prediction_chars": 7,
+      "gold": "Germany"
+    },
+    {
+      "i": 121,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Bahrain",
+      "prediction_chars": 7,
+      "gold": "Uganda"
+    },
+    {
+      "i": 122,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Vatican City",
+      "prediction_chars": 12,
+      "gold": "Vatican City"
+    },
+    {
+      "i": 123,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Libya"
+    },
+    {
+      "i": 124,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Kosovo"
+    },
+    {
+      "i": 125,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 126,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 127,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Japan"
+    },
+    {
+      "i": 128,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Bosnia and Herz",
+      "prediction_chars": 15,
+      "gold": "Montenegro"
+    },
+    {
+      "i": 129,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 130,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Brazil",
+      "prediction_chars": 6,
+      "gold": "Brazil"
+    },
+    {
+      "i": 131,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Netherlands",
+      "prediction_chars": 11,
+      "gold": "Netherlands"
+    },
+    {
+      "i": 132,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 133,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Spain"
+    },
+    {
+      "i": 134,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Egypt",
+      "prediction_chars": 5,
+      "gold": "Egypt"
+    },
+    {
+      "i": 135,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Ukraine"
+    },
+    {
+      "i": 136,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "United States"
+    },
+    {
+      "i": 137,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Norway",
+      "prediction_chars": 6,
+      "gold": "Sweden"
+    },
+    {
+      "i": 138,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 139,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Poland",
+      "prediction_chars": 6,
+      "gold": "Poland"
+    },
+    {
+      "i": 140,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Canada"
+    },
+    {
+      "i": 141,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 142,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 143,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Australia"
+    },
+    {
+      "i": 144,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Russia",
+      "prediction_chars": 6,
+      "gold": "Russia"
+    },
+    {
+      "i": 145,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Albania"
+    },
+    {
+      "i": 146,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Australia"
+    },
+    {
+      "i": 147,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Egypt"
+    },
+    {
+      "i": 148,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Russia"
+    },
+    {
+      "i": 149,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Syria"
+    },
+    {
+      "i": 150,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Germany"
+    },
+    {
+      "i": 151,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 152,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "Australia"
+    },
+    {
+      "i": 153,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Chile"
+    },
+    {
+      "i": 154,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Poland",
+      "prediction_chars": 6,
+      "gold": "Poland"
+    },
+    {
+      "i": 155,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information in",
+      "prediction_chars": 26,
+      "gold": "Australia"
+    },
+    {
+      "i": 156,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Norway",
+      "prediction_chars": 6,
+      "gold": "Sweden"
+    },
+    {
+      "i": 157,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Sweden"
+    },
+    {
+      "i": 158,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Sweden"
+    },
+    {
+      "i": 159,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Brazil",
+      "prediction_chars": 6,
+      "gold": "Brazil"
+    },
+    {
+      "i": 160,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Rome",
+      "prediction_chars": 4,
+      "gold": "Italy"
+    },
+    {
+      "i": 161,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Israel",
+      "prediction_chars": 6,
+      "gold": "Occupied Palestinian territories"
+    },
+    {
+      "i": 162,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Brazil"
+    },
+    {
+      "i": 163,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Greece"
+    },
+    {
+      "i": 164,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Australia"
+    },
+    {
+      "i": 165,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Germany",
+      "prediction_chars": 7,
+      "gold": "German Reich"
+    },
+    {
+      "i": 166,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Vietnam"
+    },
+    {
+      "i": 167,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no passage provided",
+      "prediction_chars": 28,
+      "gold": "Australia"
+    },
+    {
+      "i": 168,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Egypt"
+    },
+    {
+      "i": 169,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Australia"
+    },
+    {
+      "i": 170,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Syria",
+      "prediction_chars": 5,
+      "gold": "France"
+    },
+    {
+      "i": 171,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 172,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Australia"
+    },
+    {
+      "i": 173,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "France",
+      "prediction_chars": 6,
+      "gold": "France"
+    },
+    {
+      "i": 174,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Norway",
+      "prediction_chars": 6,
+      "gold": "Sweden"
+    },
+    {
+      "i": 175,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Israel",
+      "prediction_chars": 6,
+      "gold": "State of Palestine"
+    },
+    {
+      "i": 176,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't have a",
+      "prediction_chars": 14,
+      "gold": "Japan"
+    },
+    {
+      "i": 177,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Serbia"
+    },
+    {
+      "i": 178,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 179,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Ireland",
+      "prediction_chars": 7,
+      "gold": "Sweden"
+    },
+    {
+      "i": 180,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Egypt"
+    },
+    {
+      "i": 181,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 182,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Denmark"
+    },
+    {
+      "i": 183,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "Australia"
+    },
+    {
+      "i": 184,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "United Kingdom",
+      "prediction_chars": 14,
+      "gold": "United States"
+    },
+    {
+      "i": 185,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "India",
+      "prediction_chars": 5,
+      "gold": "India"
+    },
+    {
+      "i": 186,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see any",
+      "prediction_chars": 15,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 187,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Russia"
+    },
+    {
+      "i": 188,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 189,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no context passage",
+      "prediction_chars": 27,
+      "gold": "Italy"
+    },
+    {
+      "i": 190,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 191,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japan",
+      "prediction_chars": 5,
+      "gold": "Japan"
+    },
+    {
+      "i": 192,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Nepal",
+      "prediction_chars": 5,
+      "gold": "India"
+    },
+    {
+      "i": 193,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Japan"
+    },
+    {
+      "i": 194,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 195,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 196,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Wales",
+      "prediction_chars": 5,
+      "gold": "United Kingdom"
+    },
+    {
+      "i": 197,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Australia",
+      "prediction_chars": 9,
+      "gold": "Australia"
+    },
+    {
+      "i": 198,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about",
+      "prediction_chars": 29,
+      "gold": "Pakistan"
+    },
+    {
+      "i": 199,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I don't see a",
+      "prediction_chars": 13,
+      "gold": "United States"
+    }
+  ],
+  "hop_records_first_batch": [],
+  "total_sec": 4.72620095100001,
+  "sec_per_item": 0.02363100475500005,
+  "layer_retention": 0.28125,
+  "kept_layers": [
+    13,
+    14,
+    11,
+    9,
+    10,
+    8,
+    0,
+    15,
+    12
+  ],
+  "hook_records": [],
+  "peak_mem_bytes": 16669391872,
+  "cache_bytes_at_final_hop_mean": 0.0,
+  "attention_positions_at_final_hop_mean": 0.0,
+  "cache_stat_batches": 0,
+  "ragged_path": "causal-ragged"
+}

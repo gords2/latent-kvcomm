@@ -2,10 +2,14 @@
 
 Read this first. It is the handoff for the GPU phase.
 
-**State as of 2026-08-16, ~01:30.** The first GPU session happened. The
-environment is solved, both LatentMAS gates ran, and **K1 is broken in a way that
-must be fixed before any KVComm number means anything**. All 18 run records are
-committed under `runs/`. Both droplets were destroyed.
+**State as of 2026-08-16, second GPU session.** Task 0 is DONE. K1 was not a
+failed gate but a broken harness: two defects (D18, D19) put every Countries
+condition at exactly 0.0000. Both are fixed, and a third finding (D8) reversed a
+standing ruling. K1 now passes 4 of 5 checks and K2 passes 5 of 6 — see Results.
+All 29 run records are committed under `runs/`.
+
+`scripts/bootstrap_box.sh` now does the whole box setup in one command; the
+manual recipe below is kept only as the explanation of what it does and why.
 
 - Suite: **165/165** green on CPU, no GPU or network needed.
 - Measured defects and deviations: `docs/FINDINGS.md`. **Read before citing any number.**
@@ -87,40 +91,35 @@ cp /tmp/kvcomm/dataloader/data/countries.jsonl /tmp/kvcomm/dataloader/data/tipsh
 
 ---
 
-## Task 0 — FIX K1 BEFORE ANY OTHER GPU WORK
+## Task 0 — DONE. What K1's zeros actually were
 
-**All six Countries conditions scored exactly 0.0000, skyline included.** A
-skyline run is handed the full context *and* the question, so zero is impossible
-unless the harness is at fault. HotpotQA's baseline came in at 0.0020, so it is
-probably the same defect. Every KVComm number from yesterday is void.
+Two independent defects, both invisible to a green test suite. Full detail with
+measurements is in `docs/FINDINGS.md` (D18/D19); the short version:
 
-**Step 1 — store the predictions. DONE, no GPU needed.** `per_item` now carries
-`prediction`, `prediction_chars` and `gold` alongside `correct`/`i`/`score`
-(`lkv/run.py`). Scoring still runs on the full string; only the stored copy is
-cut, middle-elided to 600 chars a side behind a visible `...[N chars elided]...`
-marker — GSM8K reads `numbers[-1]` and MBPP+ takes the LAST ```python block, so
-head-only storage would have hidden both answers. `prediction_chars` is the
-**true** pre-elision length: that is the field separating "the model emitted
-nothing" from "the model ran into `max_new_tokens` mid-answer". Countries at 5
-tokens and HotpotQA at 48 are stored whole.
+**D18 — the QA instruction was a local paraphrase.** Upstream:
+`"Directly answer the question based on the context passage, no explanation is
+needed."` Ours: `"Answer the question using the given context."` Countries
+generates at `max_new_tokens=5`, so the dropped "no explanation is needed" is
+decisive — the model wrote prose and was cut before naming a country.
 
-**Step 2 — look at what the model actually emitted** for `kv_countries_skyline`.
-Re-run it first: every record now in `runs/` predates Step 1 and carries no
-predictions.
-Two leading hypotheses, in order:
+**D19 — no KVComm path applied the chat template.** Raw
+`"Instruction: ... Context: ..."` went straight to the tokenizer; upstream
+renders every message through `apply_chat_template(..., add_generation_prompt=
+True)`. An Instruct model handed an unterminated transcript continues the
+*format*, so it answered `'Answer: Australia\nInstruction'` — correct content,
+scored 0.5 exactly, and the threshold is a strict `>`.
 
-1. **`max_new_tokens=5` truncates before an answer appears.** Countries sets 5,
-   matching upstream's `CountriesEvaluator.max_tokens`. If the model emits a
-   preamble, a newline, or a chat-template artefact first, the answer never lands
-   inside the budget. Test by re-running skyline at `--max_new_tokens 32`; if it
-   jumps, that is the cause. Note this would be a deviation from upstream's 5 and
-   must be recorded as one.
-2. **Scoring mismatch.** `gold` is a country name like `United States`. Walk
-   `lkv/scoring.py`'s F1 path by hand on one real (prediction, gold) pair.
+**What made them findable:** run records now store `prediction`,
+`prediction_chars` and `gold`. Both causes were identified within minutes of
+having them, after a full GPU session lost to guessing without them. Scoring
+still runs on the full string; the stored copy is middle-elided to 600 chars a
+side, keeping both ends because GSM8K reads `numbers[-1]` and MBPP+ takes the
+LAST ```python block.
 
-**Step 3 — only once skyline is plausible (~0.55–0.69) does K1 mean anything.**
-Then re-run the full gate. Countries is cheap: 200 items at 5 tokens took **6
-seconds** per condition.
+**Method that localised the residual failure** — each step eliminating one
+layer: skyline 0.635 cleared prompts and scoring; full retention 0.635 cleared
+the cache transfer; `--causal_ragged` at r50 0.615 identified the ragged mask.
+Reuse this ordering rather than guessing.
 
 ---
 
@@ -140,8 +139,24 @@ Also `lm_gsm8k_4b` 0.9250 and `lm_gsm8k_14b` 0.9300.
 |---|---|---|
 | accuracy | **0.7487** | **0.7566** |
 
-**K1, Countries** — all six conditions `0.0000`. **Void, see Task 0.**
-**K2, HotpotQA** — baseline `0.0020` only; the rest never ran.
+**K1 / K2, after the D18 / D19 / D8 fixes** (2026-08-16, greedy, Llama-3.1-8B
+mirror, `--causal_ragged`):
+
+| | baseline | skyline | r30 | r50 | r70 | rand50 |
+|---|---|---|---|---|---|---|
+| **K1** Countries n=200 | 0.000 | 0.635 | 0.315 | 0.615 | 0.620 | 0.305 |
+| published | 0.00 | 0.62 | 0.51 | 0.62 | 0.62 | — |
+| **K2** HotpotQA n=500 | 0.248 | 0.766 | 0.264 | 0.532 | 0.598 | 0.450 |
+
+**K1 passes 4 of 5** — only `r30 >= 0.42` fails, at 0.315. **K2 passes 5 of 6**
+— only `r70 >= 0.62` fails, at 0.598. The ranking beats random on both tasks
+(0.615 vs 0.305; 0.532 vs 0.450), which is KVComm's actual claim for layer
+selection.
+
+**r30 is open and must not be tuned shut.** Calibration size and layer-0
+accounting are both already ruled out (see `docs/FINDINGS.md`). Since r50/r70
+land within 0.005 of published, the remaining live candidate is the mirror
+weights. Fitting a knob until 0.51 appears would void the reproduction.
 
 ### What this means, stated carefully
 
@@ -181,8 +196,8 @@ README commands do not use it. This is a hypothesis, not a finding.
 
 | | what | gate |
 |---|---|---|
-| **0** | ~~Store predictions~~ (done, on CPU); diagnose and fix the Countries zeros. | skyline plausible (~0.55–0.69) |
-| **1** | Re-run K1 Countries (6 conditions, ~1 min total). | **K1**: baseline ≤ 0.05, skyline ∈ [0.55, 0.69], r30 ≥ 0.42, r50 ≥ 0.55, monotone r30 ≤ r50 ≤ r70 (0.02 tol) |
+| **0** | DONE. Predictions stored; D18+D19 fixed; skyline 0.635. | passed |
+| **1** | DONE. K1 4/5, K2 5/6 — see the table above. Remaining: r30 / r70. | **K1**: baseline ≤ 0.05, skyline ∈ [0.55, 0.69], r30 ≥ 0.42, r50 ≥ 0.55, monotone r30 ≤ r50 ≤ r70 (0.02 tol) |
 | **2** | The three no-thinking runs above (~50 min, run concurrently). | completes the 2×2 |
 | **3** | K2 HotpotQA (500) and Tipsheets (500). Tipsheets needs its loader registered in `lkv/data/__init__.py` — that is Task 16 proper. | **K2**: baseline ∈ [0.13, 0.25], skyline ≥ 0.66, r30 ≥ 0.26, r50 ≥ 0.53, r70 ≥ 0.62, strictly increasing |
 | **4** | Task 20 integration sweep: 2 scopes × 3 ratios + random and pair-calibration controls, **each run twice, `--causal_ragged` off and on**. | — |
@@ -234,9 +249,19 @@ reported exit 0 that way yesterday.
 5. **Reproduction uses sampled decoding; internal A/B uses `--greedy`.** The
    LatentMAS gates sample; the KVComm gates are greedy (upstream's `eval.py` sets
    `do_sample=False`). Never mix within one comparison.
-6. **`--causal_ragged` defaults OFF.** Off reproduces KVComm as published, whose
-   table came from the non-causal path. On is correct and is what every
-   integration number must use.
+6. **`--causal_ragged` defaults ON — this ruling was REVERSED by measurement.**
+   It previously read "off reproduces KVComm as published, whose table came from
+   the non-causal path." That is false. Countries, n=200, greedy:
+
+   | retention | stock | causal | published |
+   |---|---|---|---|
+   | 0.3 | 0.030 | 0.315 | 0.51 |
+   | 0.5 | 0.150 | 0.615 | 0.62 |
+   | 0.7 | 0.155 | 0.620 | 0.62 |
+
+   The stock path reproduces nothing; the corrected one lands on two of three
+   published cells. `scripts/gate_kvcomm.sh` defaults `CAUSAL=1`. Use `CAUSAL=0`
+   only to measure the D8 gap itself. See D8 (resolved) in `docs/FINDINGS.md`.
 7. **The Llama mirror is a mirror, not asserted byte-identical.** If K1/K2 miss
    after the harness is fixed, "the mirror differs from KVComm's weights" belongs
    on the diagnostic ladder — below the harness causes, above concluding the

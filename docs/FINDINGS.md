@@ -422,6 +422,75 @@ Countries records and the HotpotQA baseline committed in `runs/` on
 
 ---
 
+### D8 (resolved) — the causal correction is what reproduces KVComm. MEASURED.
+
+**This reverses the project's standing assumption.** Ruling 6 in `docs/NEXT.md`
+held that `--causal_ragged` OFF reproduces KVComm as published, "whose table came
+from the non-causal path", and that ON was merely the more correct variant to use
+for the integration. Measured on Countries (n=200, greedy, Llama-3.1-8B mirror,
+`calib_size=1`, `alpha=1.0`):
+
+| retention | stock (non-causal) | causal-ragged | published |
+|---|---|---|---|
+| 0.3 | 0.030 | **0.315** | 0.51 |
+| 0.5 | 0.150 | **0.615** | 0.62 |
+| 0.7 | 0.155 | **0.620** | 0.62 |
+
+The stock path reproduces nothing. The corrected path lands on two of the three
+published cells to within 0.005. D8 is therefore not a fidelity nicety — it is
+the difference between the method working and not working, and every earlier
+statement that the stock path was the faithful one is withdrawn.
+
+`scripts/gate_kvcomm.sh` now defaults `CAUSAL=1`; `CAUSAL=0` measures the gap
+rather than the reproduction.
+
+Sequence that localised it, each step ruling out a layer of the stack:
+
+1. skyline 0.635 — prompts and scoring are correct.
+2. full retention (`top_layers=1.0`) 0.635, identical — the sender→receiver
+   cache transfer is correct, and trimming is the only remaining suspect.
+3. `--causal_ragged` at r50 0.615 — the ragged mask was the fault.
+
+Two hypotheses were tested and **rejected** before this, and are recorded so
+they are not re-tried: calibration-set size (r30 gives 0.315/0.345/0.315 at
+`calib_size` 1/4/16 — the ranking is stable, not noisy), and layer-0
+accounting (`select_layers` already ranks freely while `prepare_key_cache`
+keeps layer 0 additively, matching upstream; layer 0 appears in the r30
+selection because it genuinely ranks there).
+
+### Gate results after the D18/D19/D8 fixes. MEASURED 2026-08-16.
+
+| | baseline | skyline | r30 | r50 | r70 | rand50 |
+|---|---|---|---|---|---|---|
+| **K1** Countries n=200 | 0.000 | 0.635 | 0.315 | 0.615 | 0.620 | 0.305 |
+| published | 0.00 | 0.62 | 0.51 | 0.62 | 0.62 | — |
+| **K2** HotpotQA n=500 | 0.248 | 0.766 | 0.264 | 0.532 | 0.598 | 0.450 |
+
+**K1: 4 of 5 checks pass.** Only `r30 >= 0.42` fails, at 0.315. Max deviation
+from the published column fell from 0.480 to 0.195.
+
+**K2: 5 of 6 checks pass.** Only `r70 >= 0.62` fails, at 0.598.
+
+The importance ranking beats random selection on both tasks — 0.615 vs 0.305 on
+Countries, 0.532 vs 0.450 on HotpotQA — which is the specific claim KVComm makes
+for layer selection, and it holds here.
+
+**r30 is an open discrepancy with no identified cause.** Do not tune parameters
+until it closes: r50 and r70 land within 0.005 of published, so the transmission
+path is not in question, and fitting a knob to hit 0.51 would make the whole
+reproduction meaningless. The live candidate is the one flagged below — the
+mirror is a mirror, not asserted byte-identical.
+
+**Harness hazard found the same day.** `runs/*.json` is tracked in git, the
+deploy step rsyncs the local tree to the box, and the gate scripts skip any
+condition whose file already exists. Together those resurrect deleted void
+records and re-present them as fresh results: the HotpotQA baseline reported
+0.0020 (yesterday's broken-harness value) until the missing `prediction` field
+gave it away. Re-run reported **0.2480**, inside the gate band. Delete void
+records from the repo, not just from the box.
+
+---
+
 ### Deviation — K1/K2 use an ungated Llama mirror. DELIBERATE.
 
 KVComm's published numbers are Llama numbers, so Tasks 15/16 need

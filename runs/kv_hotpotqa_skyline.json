@@ -1,0 +1,4048 @@
+{
+  "system": "skyline",
+  "task": "hotpotqa",
+  "model_name": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+  "model_b": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+  "max_samples": -1,
+  "seed": 42,
+  "device": "cuda:0",
+  "greedy": true,
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "max_new_tokens": 48,
+  "generate_bs": 16,
+  "n_agents": 4,
+  "latent_steps": 0,
+  "realign": false,
+  "renorm_latent": true,
+  "prompt": "sequential",
+  "enable_thinking": true,
+  "top_layers": 1.0,
+  "alpha": 1.0,
+  "mu": 0.5,
+  "sigma": 10.0,
+  "calib_size": 1,
+  "random_selection": false,
+  "calib_source": "relay",
+  "causal_ragged": false,
+  "trim_scope": "all",
+  "trim_every_hop": false,
+  "out_json": "runs/kv_hotpotqa_skyline.json",
+  "n": 500,
+  "correct": 383,
+  "accuracy": 0.766,
+  "mean_score": 0.7594000348771544,
+  "per_item": [
+    {
+      "i": 0,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "Greenwich Village",
+      "prediction_chars": 17,
+      "gold": "Greenwich Village, New York City"
+    },
+    {
+      "i": 1,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 2,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1838",
+      "prediction_chars": 4,
+      "gold": "1838"
+    },
+    {
+      "i": 3,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rome.",
+      "prediction_chars": 5,
+      "gold": "Rome"
+    },
+    {
+      "i": 4,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "35,124",
+      "prediction_chars": 6,
+      "gold": "35,124"
+    },
+    {
+      "i": 5,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "70",
+      "prediction_chars": 2,
+      "gold": "more than 70 countries"
+    },
+    {
+      "i": 6,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ann",
+      "prediction_chars": 3,
+      "gold": "Ann"
+    },
+    {
+      "i": 7,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "March and April.",
+      "prediction_chars": 16,
+      "gold": "March and April"
+    },
+    {
+      "i": 8,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The A41.",
+      "prediction_chars": 8,
+      "gold": "The A41"
+    },
+    {
+      "i": 9,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1989",
+      "prediction_chars": 4,
+      "gold": "1989"
+    },
+    {
+      "i": 10,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "48,982",
+      "prediction_chars": 6,
+      "gold": "48,982"
+    },
+    {
+      "i": 11,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Kevin Spacey",
+      "prediction_chars": 12,
+      "gold": "Kevin Spacey"
+    },
+    {
+      "i": 12,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Parthian Empire.",
+      "prediction_chars": 20,
+      "gold": "the Parthian Empire"
+    },
+    {
+      "i": 13,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Sarod",
+      "prediction_chars": 5,
+      "gold": "strings"
+    },
+    {
+      "i": 14,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Battenberg",
+      "prediction_chars": 10,
+      "gold": "Mountbatten family"
+    },
+    {
+      "i": 15,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Slaughterhouse-Five",
+      "prediction_chars": 19,
+      "gold": "Slaughterhouse-Five"
+    },
+    {
+      "i": 16,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Lisburn Distillery Football Club",
+      "prediction_chars": 32,
+      "gold": "Distillery"
+    },
+    {
+      "i": 17,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "They are both American.",
+      "prediction_chars": 23,
+      "gold": "Steve Jobs"
+    },
+    {
+      "i": 18,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 19,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Late Late Show",
+      "prediction_chars": 18,
+      "gold": "The Late Late Show"
+    },
+    {
+      "i": 20,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "New York Giants.",
+      "prediction_chars": 16,
+      "gold": "New York Giants"
+    },
+    {
+      "i": 21,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Shanghai",
+      "prediction_chars": 8,
+      "gold": "Shanghai"
+    },
+    {
+      "i": 22,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Douglas Jackson",
+      "prediction_chars": 15,
+      "gold": "Douglas Jackson"
+    },
+    {
+      "i": 23,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Larry Drake",
+      "prediction_chars": 11,
+      "gold": "Larry Richard Drake"
+    },
+    {
+      "i": 24,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The 1984 South Asian Games.",
+      "prediction_chars": 27,
+      "gold": "1984 South Asian Games"
+    },
+    {
+      "i": 25,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "BraveStarr",
+      "prediction_chars": 10,
+      "gold": "BraveStarr"
+    },
+    {
+      "i": 26,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Martha Coolidge",
+      "prediction_chars": 15,
+      "gold": "Martha Coolidge"
+    },
+    {
+      "i": 27,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Edmonton, Alberta.",
+      "prediction_chars": 18,
+      "gold": "Edmonton, Alberta"
+    },
+    {
+      "i": 28,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Kathleen O'Brien",
+      "prediction_chars": 16,
+      "gold": "Kathleen O'Brien"
+    },
+    {
+      "i": 29,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Warner Bros.",
+      "prediction_chars": 12,
+      "gold": "Warner Bros"
+    },
+    {
+      "i": 30,
+      "correct": true,
+      "score": 0.7058823529411764,
+      "prediction": "She translated and commented on Isaac Newton's book \"Principia\".",
+      "prediction_chars": 64,
+      "gold": "commentary on Isaac Newton's book \"Principia\""
+    },
+    {
+      "i": 31,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "lower Manhattan.",
+      "prediction_chars": 16,
+      "gold": "lower Manhattan"
+    },
+    {
+      "i": 32,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Documentary film",
+      "prediction_chars": 16,
+      "gold": "documentary"
+    },
+    {
+      "i": 33,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Guardians of the Galaxy Vol. 2",
+      "prediction_chars": 30,
+      "gold": "Guardians of the Galaxy Vol. 2"
+    },
+    {
+      "i": 34,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Nobel Prize",
+      "prediction_chars": 11,
+      "gold": "Nobel Prize in Literature"
+    },
+    {
+      "i": 35,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1961",
+      "prediction_chars": 4,
+      "gold": "1961"
+    },
+    {
+      "i": 36,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 37,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 38,
+      "correct": false,
+      "score": 0.3636363636363636,
+      "prediction": "Vib Gyor",
+      "prediction_chars": 8,
+      "gold": "Vib Gyor was a band that was formed in Leeds, England."
+    },
+    {
+      "i": 39,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "Boulder High School in Boulder, Colorado.",
+      "prediction_chars": 41,
+      "gold": "Boulder High School"
+    },
+    {
+      "i": 40,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "September 25, 2017",
+      "prediction_chars": 18,
+      "gold": "September 25, 2017"
+    },
+    {
+      "i": 41,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Evangelical Christian.",
+      "prediction_chars": 22,
+      "gold": "evangelical Christian"
+    },
+    {
+      "i": 42,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Queen In-hyun's Man",
+      "prediction_chars": 19,
+      "gold": "Queen In-hyun's Man"
+    },
+    {
+      "i": 43,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Germany",
+      "prediction_chars": 7,
+      "gold": "Germany"
+    },
+    {
+      "i": 44,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Guthred",
+      "prediction_chars": 7,
+      "gold": "Guthred or Guthfrith"
+    },
+    {
+      "i": 45,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "The Bristol Olympus turbojet.",
+      "prediction_chars": 29,
+      "gold": "British Bristol Olympus turbojet"
+    },
+    {
+      "i": 46,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Kenny Young",
+      "prediction_chars": 11,
+      "gold": "Kenny Young"
+    },
+    {
+      "i": 47,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "650",
+      "prediction_chars": 3,
+      "gold": "650 locations"
+    },
+    {
+      "i": 48,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rosie O'Donnell",
+      "prediction_chars": 15,
+      "gold": "Rosie O'Donnell"
+    },
+    {
+      "i": 49,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Drummers",
+      "prediction_chars": 8,
+      "gold": "drummer"
+    },
+    {
+      "i": 50,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Dusty Dvoracek",
+      "prediction_chars": 14,
+      "gold": "Dusty Dvoracek"
+    },
+    {
+      "i": 51,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "American"
+    },
+    {
+      "i": 52,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Preston, Lancashire, UK.",
+      "prediction_chars": 24,
+      "gold": "Preston"
+    },
+    {
+      "i": 53,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Cyclic Defrost",
+      "prediction_chars": 14,
+      "gold": "Cyclic Defrost"
+    },
+    {
+      "i": 54,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "87",
+      "prediction_chars": 2,
+      "gold": "87"
+    },
+    {
+      "i": 55,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 56,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "A town meeting legislative body.",
+      "prediction_chars": 32,
+      "gold": "town meeting legislative body"
+    },
+    {
+      "i": 57,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ride a Wild Pony",
+      "prediction_chars": 16,
+      "gold": "Ride a Wild Pony"
+    },
+    {
+      "i": 58,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Jessica Lange",
+      "prediction_chars": 13,
+      "gold": "Jessica Lange"
+    },
+    {
+      "i": 59,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "\"Personal History\"",
+      "prediction_chars": 18,
+      "gold": "Personal History"
+    },
+    {
+      "i": 60,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Royal Family",
+      "prediction_chars": 16,
+      "gold": "\"The Royal Family\""
+    },
+    {
+      "i": 61,
+      "correct": true,
+      "score": 0.5333333333333333,
+      "prediction": "The first month of World War I, from 26\u201330 August 1914.",
+      "prediction_chars": 55,
+      "gold": "26\u201330 August 1914"
+    },
+    {
+      "i": 62,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Reichsf\u00fchrer-SS",
+      "prediction_chars": 15,
+      "gold": "Reichsf\u00fchrer-SS"
+    },
+    {
+      "i": 63,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "GE Appliances",
+      "prediction_chars": 13,
+      "gold": "GE Appliances"
+    },
+    {
+      "i": 64,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Punjabi/Pashtun",
+      "prediction_chars": 15,
+      "gold": "Punjabi/Pashtun"
+    },
+    {
+      "i": 65,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Justin Spitzer",
+      "prediction_chars": 14,
+      "gold": "Justin Spitzer"
+    },
+    {
+      "i": 66,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "1991's \"The Changing Scottish Landscape\"",
+      "prediction_chars": 40,
+      "gold": "The Changing Scottish Landscape"
+    },
+    {
+      "i": 67,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "Kv\u011bta Peschke is younger.",
+      "prediction_chars": 25,
+      "gold": "Kv\u011bta Peschke"
+    },
+    {
+      "i": 68,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Giuseppe Verdi",
+      "prediction_chars": 14,
+      "gold": "Giuseppe Verdi"
+    },
+    {
+      "i": 69,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Maria Szraiber",
+      "prediction_chars": 14,
+      "gold": "Maria Szraiber"
+    },
+    {
+      "i": 70,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Taylor Swift.",
+      "prediction_chars": 13,
+      "gold": "Taylor Swift"
+    },
+    {
+      "i": 71,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Robert Z. Leonard is younger.",
+      "prediction_chars": 29,
+      "gold": "Sinclair Hill"
+    },
+    {
+      "i": 72,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Dutch",
+      "prediction_chars": 5,
+      "gold": "Dutch"
+    },
+    {
+      "i": 73,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "January",
+      "prediction_chars": 7,
+      "gold": "January 2001"
+    },
+    {
+      "i": 74,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Wushu",
+      "prediction_chars": 5,
+      "gold": "world wushu tournament"
+    },
+    {
+      "i": 75,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Vanguard Group.",
+      "prediction_chars": 19,
+      "gold": "The Vanguard Group"
+    },
+    {
+      "i": 76,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Burwash Mine.",
+      "prediction_chars": 13,
+      "gold": "Burwash Mine"
+    },
+    {
+      "i": 77,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Province of New York.",
+      "prediction_chars": 25,
+      "gold": "Province of New York"
+    },
+    {
+      "i": 78,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "American football.",
+      "prediction_chars": 18,
+      "gold": "American football"
+    },
+    {
+      "i": 79,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Revengers Tragedy",
+      "prediction_chars": 17,
+      "gold": "Revengers Tragedy"
+    },
+    {
+      "i": 80,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "Love Drunk"
+    },
+    {
+      "i": 81,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 82,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Dame Eileen June Atkins",
+      "prediction_chars": 23,
+      "gold": "Dame Eileen June Atkins"
+    },
+    {
+      "i": 83,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "Israeli Ambassador to the United States.",
+      "prediction_chars": 40,
+      "gold": "Israeli Ambassador"
+    },
+    {
+      "i": 84,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Camel Up and Outrage! are both board games.",
+      "prediction_chars": 43,
+      "gold": "board game"
+    },
+    {
+      "i": 85,
+      "correct": false,
+      "score": 0.3846153846153846,
+      "prediction": "His superhero roles as the Marvel Comics characters Steve Rogers / Captain America in the Marvel Cinematic Universe and Johnny Storm / Human Torch in \"Fantastic Four\".",
+      "prediction_chars": 167,
+      "gold": "superhero roles as the Marvel Comics"
+    },
+    {
+      "i": 86,
+      "correct": false,
+      "score": 0.14814814814814814,
+      "prediction": "Milk, Pineapple Express, Rise of the Planet of the Apes, Spring Breakers, Oz the Great and Powerful, This Is the End, The Disaster Artist, Spider-Man trilogy, The Little Prince, Sausage Party.",
+      "prediction_chars": 192,
+      "gold": "Pineapple Express"
+    },
+    {
+      "i": 87,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Salma Hayek",
+      "prediction_chars": 11,
+      "gold": "Salma Hayek Pinault"
+    },
+    {
+      "i": 88,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Dissection.",
+      "prediction_chars": 11,
+      "gold": "Dissection"
+    },
+    {
+      "i": 89,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "\"Naked Killer\" (1992)",
+      "prediction_chars": 21,
+      "gold": "\"Naked Killer\""
+    },
+    {
+      "i": 90,
+      "correct": false,
+      "score": 0.11764705882352941,
+      "prediction": "There is no city mentioned between Normanby le Wold and the A46 junction between Lincoln and Grimsby.",
+      "prediction_chars": 101,
+      "gold": "Caistor is a town"
+    },
+    {
+      "i": 91,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 92,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Nusretiye Mosque.",
+      "prediction_chars": 17,
+      "gold": "Nusretiye Mosque"
+    },
+    {
+      "i": 93,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "the world",
+      "prediction_chars": 9,
+      "gold": "the world"
+    },
+    {
+      "i": 94,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "Drunter und Dr\u00fcber is a multiplayer board game invented by Klaus Teuber"
+    },
+    {
+      "i": 95,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Volta Region",
+      "prediction_chars": 12,
+      "gold": "Volta"
+    },
+    {
+      "i": 96,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Extensive use of segues in their live performances.",
+      "prediction_chars": 51,
+      "gold": "extensive use of segues"
+    },
+    {
+      "i": 97,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "South African",
+      "prediction_chars": 13,
+      "gold": "South African-born"
+    },
+    {
+      "i": 98,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Big Lebowski",
+      "prediction_chars": 16,
+      "gold": "The Big Lebowski"
+    },
+    {
+      "i": 99,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Alexander Porfiryevich Borodin",
+      "prediction_chars": 30,
+      "gold": "Alexander Porfiryevich Borodin"
+    },
+    {
+      "i": 100,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 101,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Marvel's Agent Carter",
+      "prediction_chars": 21,
+      "gold": "Agent Carter"
+    },
+    {
+      "i": 102,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Oakland County.",
+      "prediction_chars": 15,
+      "gold": "Oakland County"
+    },
+    {
+      "i": 103,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "March and April 1968",
+      "prediction_chars": 20,
+      "gold": "1968"
+    },
+    {
+      "i": 104,
+      "correct": false,
+      "score": 0.3157894736842105,
+      "prediction": "Jeff Meldrum and Grover Krantz.",
+      "prediction_chars": 31,
+      "gold": "Don Jeffrey \"Jeff\" Meldrum (born May 24, 1958) is a Professor of Anatomy and Anthropology"
+    },
+    {
+      "i": 105,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Prince George's County.",
+      "prediction_chars": 23,
+      "gold": "Prince George's County"
+    },
+    {
+      "i": 106,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "\"Shake It Off\"",
+      "prediction_chars": 14,
+      "gold": "Shake It Off"
+    },
+    {
+      "i": 107,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "1987",
+      "prediction_chars": 4,
+      "gold": "16 March 1987"
+    },
+    {
+      "i": 108,
+      "correct": false,
+      "score": 0.25,
+      "prediction": "2002 United States Senate election in Minnesota",
+      "prediction_chars": 47,
+      "gold": "2002"
+    },
+    {
+      "i": 109,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "11 November 1918",
+      "prediction_chars": 16,
+      "gold": "11 November 1918"
+    },
+    {
+      "i": 110,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Red Rock West",
+      "prediction_chars": 13,
+      "gold": "\"Red Rock West\""
+    },
+    {
+      "i": 111,
+      "correct": false,
+      "score": 0.25,
+      "prediction": "117-138",
+      "prediction_chars": 7,
+      "gold": "24 January 76 \u2013 10 July 138"
+    },
+    {
+      "i": 112,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "The Tropicana Casino & Resort Atlantic City",
+      "prediction_chars": 43,
+      "gold": "Tropicana Casino & Resort"
+    },
+    {
+      "i": 113,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Tim Cluess",
+      "prediction_chars": 10,
+      "gold": "Tim Cluess"
+    },
+    {
+      "i": 114,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Jacques Feyder",
+      "prediction_chars": 14,
+      "gold": "Jacques Feyder"
+    },
+    {
+      "i": 115,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Hunting.",
+      "prediction_chars": 8,
+      "gold": "hunt"
+    },
+    {
+      "i": 116,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Over 3,000 people.",
+      "prediction_chars": 18,
+      "gold": "3,000"
+    },
+    {
+      "i": 117,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "England, Scotland, and Ireland.",
+      "prediction_chars": 31,
+      "gold": "England, Scotland, and Ireland"
+    },
+    {
+      "i": 118,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Anderson Silva",
+      "prediction_chars": 14,
+      "gold": "Anderson Silva"
+    },
+    {
+      "i": 119,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "North Dakota and Minnesota.",
+      "prediction_chars": 27,
+      "gold": "North Dakota and Minnesota"
+    },
+    {
+      "i": 120,
+      "correct": false,
+      "score": 0.23529411764705882,
+      "prediction": "Kait Parker fills in occasionally for the meteorologist who replaced Ginger Zee, which is Rob Marciano.",
+      "prediction_chars": 103,
+      "gold": "Kait Parker"
+    },
+    {
+      "i": 121,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1876",
+      "prediction_chars": 4,
+      "gold": "1876"
+    },
+    {
+      "i": 122,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "\"la f\u00e9e verte\" (the green fairy)",
+      "prediction_chars": 32,
+      "gold": "the green fairy"
+    },
+    {
+      "i": 123,
+      "correct": false,
+      "score": 0.2222222222222222,
+      "prediction": "Brag",
+      "prediction_chars": 4,
+      "gold": "In Crash, there is no betting, as in Brag"
+    },
+    {
+      "i": 124,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "University of California",
+      "prediction_chars": 24,
+      "gold": "University of California"
+    },
+    {
+      "i": 125,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Am\u00e9lie Mauresmo has won more Olympic medals.",
+      "prediction_chars": 44,
+      "gold": "Am\u00e9lie Simone Mauresmo"
+    },
+    {
+      "i": 126,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Georgetown University",
+      "prediction_chars": 21,
+      "gold": "Georgetown University"
+    },
+    {
+      "i": 127,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "He was an Olympic distance runner.",
+      "prediction_chars": 34,
+      "gold": "Olympic distance runner"
+    },
+    {
+      "i": 128,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Dogs",
+      "prediction_chars": 4,
+      "gold": "dogs"
+    },
+    {
+      "i": 129,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Liberal \"Venstre\" party.",
+      "prediction_chars": 28,
+      "gold": "Liberal \"Venstre\" party"
+    },
+    {
+      "i": 130,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "South America.",
+      "prediction_chars": 14,
+      "gold": "South America"
+    },
+    {
+      "i": 131,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ali Qushji",
+      "prediction_chars": 10,
+      "gold": "Ali Qushji"
+    },
+    {
+      "i": 132,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Marvel Comics",
+      "prediction_chars": 13,
+      "gold": "Marvel"
+    },
+    {
+      "i": 133,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "John Andr\u00e9",
+      "prediction_chars": 10,
+      "gold": "John Andr\u00e9"
+    },
+    {
+      "i": 134,
+      "correct": false,
+      "score": 0.4444444444444445,
+      "prediction": "Saint-Domingue, now the sovereign nation of Haiti.",
+      "prediction_chars": 50,
+      "gold": "Saint-Domingue"
+    },
+    {
+      "i": 135,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Visit",
+      "prediction_chars": 9,
+      "gold": "The Visit"
+    },
+    {
+      "i": 136,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Boston",
+      "prediction_chars": 6,
+      "gold": "Boston"
+    },
+    {
+      "i": 137,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Switzerland national team.",
+      "prediction_chars": 30,
+      "gold": "the Switzerland national team"
+    },
+    {
+      "i": 138,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Nick Offerman",
+      "prediction_chars": 13,
+      "gold": "Nick Offerman"
+    },
+    {
+      "i": 139,
+      "correct": false,
+      "score": 0.33333333333333337,
+      "prediction": "Classical realism",
+      "prediction_chars": 17,
+      "gold": "Modern thinkers associated with classical realism are Carl von Clausewitz"
+    },
+    {
+      "i": 140,
+      "correct": true,
+      "score": 0.888888888888889,
+      "prediction": "Over 1.6 million passengers.",
+      "prediction_chars": 28,
+      "gold": "1.6 million passengers"
+    },
+    {
+      "i": 141,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "1.7 billion views.",
+      "prediction_chars": 18,
+      "gold": "1.7 billion"
+    },
+    {
+      "i": 142,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes.",
+      "prediction_chars": 4,
+      "gold": "yes"
+    },
+    {
+      "i": 143,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Baldwin",
+      "prediction_chars": 7,
+      "gold": "Baldwin"
+    },
+    {
+      "i": 144,
+      "correct": true,
+      "score": 0.888888888888889,
+      "prediction": "New York Shakespeare Festival (NYSF)",
+      "prediction_chars": 36,
+      "gold": "New York Shakespeare Festival"
+    },
+    {
+      "i": 145,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Saint Louis University",
+      "prediction_chars": 22,
+      "gold": "Saint Louis University"
+    },
+    {
+      "i": 146,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "4080 ft",
+      "prediction_chars": 7,
+      "gold": "4080"
+    },
+    {
+      "i": 147,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1790",
+      "prediction_chars": 4,
+      "gold": "1790"
+    },
+    {
+      "i": 148,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Chicago",
+      "prediction_chars": 7,
+      "gold": "Chicago"
+    },
+    {
+      "i": 149,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Fortean",
+      "prediction_chars": 7,
+      "gold": "Fortean"
+    },
+    {
+      "i": 150,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 151,
+      "correct": false,
+      "score": 0.15384615384615385,
+      "prediction": "Kangpenqing",
+      "prediction_chars": 11,
+      "gold": "Kangpenqing (also Gang Benchhen) is a mountain in the Baiku Himalayas of Tibet, China."
+    },
+    {
+      "i": 152,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Colomac Mine.",
+      "prediction_chars": 13,
+      "gold": "The Colomac Mine"
+    },
+    {
+      "i": 153,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Bertalan Farkas is older.",
+      "prediction_chars": 25,
+      "gold": "Bertalan Farkas"
+    },
+    {
+      "i": 154,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Do Kyung-soo",
+      "prediction_chars": 12,
+      "gold": "Do Kyung-soo"
+    },
+    {
+      "i": 155,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about Kevin Ullyett in the passage, so it's impossible to determine who won more Grand Slam titles.",
+      "prediction_chars": 123,
+      "gold": "Billie Jean King"
+    },
+    {
+      "i": 156,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Italian",
+      "prediction_chars": 7,
+      "gold": "Italian"
+    },
+    {
+      "i": 157,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "24800",
+      "prediction_chars": 5,
+      "gold": "24800 mi"
+    },
+    {
+      "i": 158,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "2015",
+      "prediction_chars": 4,
+      "gold": "2015"
+    },
+    {
+      "i": 159,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Syracuse University.",
+      "prediction_chars": 20,
+      "gold": "Syracuse University"
+    },
+    {
+      "i": 160,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Daniel Ricciardo",
+      "prediction_chars": 16,
+      "gold": "Daniel Ricciardo"
+    },
+    {
+      "i": 161,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Dirk Nowitzki",
+      "prediction_chars": 13,
+      "gold": "Dirk Werner Nowitzki"
+    },
+    {
+      "i": 162,
+      "correct": true,
+      "score": 0.6,
+      "prediction": "Drama Desk Award for Outstanding Lighting Design",
+      "prediction_chars": 48,
+      "gold": "Outstanding Lighting Design"
+    },
+    {
+      "i": 163,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "Major League Soccer (MLS)",
+      "prediction_chars": 25,
+      "gold": "Major League Soccer"
+    },
+    {
+      "i": 164,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Tamiami Canal",
+      "prediction_chars": 13,
+      "gold": "Genesee River"
+    },
+    {
+      "i": 165,
+      "correct": false,
+      "score": 0.3333333333333333,
+      "prediction": "Christmas Present",
+      "prediction_chars": 17,
+      "gold": "The Andy Williams Christmas Album"
+    },
+    {
+      "i": 166,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Luca Guadagnino",
+      "prediction_chars": 15,
+      "gold": "Luca Guadagnino"
+    },
+    {
+      "i": 167,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "Rafael Dos Anjos",
+      "prediction_chars": 16,
+      "gold": "Rafael Souza dos Anjos"
+    },
+    {
+      "i": 168,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "House of Fraser.",
+      "prediction_chars": 16,
+      "gold": "Army & Navy Stores"
+    },
+    {
+      "i": 169,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "People! and The Carnabeats, and several other artists, including foreign translations.",
+      "prediction_chars": 86,
+      "gold": "People! and The Carnabeats"
+    },
+    {
+      "i": 170,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "10",
+      "prediction_chars": 2,
+      "gold": "ten"
+    },
+    {
+      "i": 171,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Greyia contains more species.",
+      "prediction_chars": 29,
+      "gold": "Greyia"
+    },
+    {
+      "i": 172,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Nick Carter",
+      "prediction_chars": 11,
+      "gold": "Brady Seals"
+    },
+    {
+      "i": 173,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Alachua County.",
+      "prediction_chars": 15,
+      "gold": "Alachua"
+    },
+    {
+      "i": 174,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Albany County",
+      "prediction_chars": 13,
+      "gold": "Albany"
+    },
+    {
+      "i": 175,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Taylor Swift",
+      "prediction_chars": 12,
+      "gold": "Taylor Swift"
+    },
+    {
+      "i": 176,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1919",
+      "prediction_chars": 4,
+      "gold": "1919"
+    },
+    {
+      "i": 177,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 178,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Aberdeenshire",
+      "prediction_chars": 13,
+      "gold": "Aberdeenshire, Scotland"
+    },
+    {
+      "i": 179,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Adventure",
+      "prediction_chars": 9,
+      "gold": "an adventure novel"
+    },
+    {
+      "i": 180,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Shins.",
+      "prediction_chars": 10,
+      "gold": "The Shins"
+    },
+    {
+      "i": 181,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "CBS",
+      "prediction_chars": 3,
+      "gold": "CBS"
+    },
+    {
+      "i": 182,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Belfast.",
+      "prediction_chars": 8,
+      "gold": "Belfast, Northern Ireland"
+    },
+    {
+      "i": 183,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Eve Hewson",
+      "prediction_chars": 10,
+      "gold": "Eve Hewson"
+    },
+    {
+      "i": 184,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 185,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Texas's 27th congressional district.",
+      "prediction_chars": 36,
+      "gold": "Texas's 27th congressional district"
+    },
+    {
+      "i": 186,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "The Marx Brothers film of the same name.",
+      "prediction_chars": 40,
+      "gold": "Marx Brothers film"
+    },
+    {
+      "i": 187,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "J. K. Rowling",
+      "prediction_chars": 13,
+      "gold": "J. K. Rowling"
+    },
+    {
+      "i": 188,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1844",
+      "prediction_chars": 4,
+      "gold": "1844"
+    },
+    {
+      "i": 189,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "KXII",
+      "prediction_chars": 4,
+      "gold": "KXII"
+    },
+    {
+      "i": 190,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Corps of Discovery.",
+      "prediction_chars": 23,
+      "gold": "Corps of Discovery"
+    },
+    {
+      "i": 191,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "On top of Black Mountain.",
+      "prediction_chars": 25,
+      "gold": "4145 ft"
+    },
+    {
+      "i": 192,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Native American tradition.",
+      "prediction_chars": 26,
+      "gold": "Native American"
+    },
+    {
+      "i": 193,
+      "correct": true,
+      "score": 0.5882352941176471,
+      "prediction": "Frederick I, Elector of Saxony and his brother William II, Margrave of Meissen.",
+      "prediction_chars": 79,
+      "gold": "Frederick I, Elector of Saxony"
+    },
+    {
+      "i": 194,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Washington State University (WSU)",
+      "prediction_chars": 33,
+      "gold": "Edward R. Murrow"
+    },
+    {
+      "i": 195,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "\"Rudebox\"",
+      "prediction_chars": 9,
+      "gold": "Rudebox"
+    },
+    {
+      "i": 196,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "Wednesday, November 1, 2000",
+      "prediction_chars": 27,
+      "gold": "November 1, 2000"
+    },
+    {
+      "i": 197,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Sonic Mania",
+      "prediction_chars": 11,
+      "gold": "Sonic Mania"
+    },
+    {
+      "i": 198,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "William McKinley",
+      "prediction_chars": 16,
+      "gold": "William McKinley"
+    },
+    {
+      "i": 199,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Queensland",
+      "prediction_chars": 10,
+      "gold": "Queensland"
+    },
+    {
+      "i": 200,
+      "correct": true,
+      "score": 0.888888888888889,
+      "prediction": "70 m and 90 m events.",
+      "prediction_chars": 21,
+      "gold": "70 m and 90 m"
+    },
+    {
+      "i": 201,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Nuclear weapons.",
+      "prediction_chars": 16,
+      "gold": "nuclear weapons"
+    },
+    {
+      "i": 202,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Oklahoma State University.",
+      "prediction_chars": 26,
+      "gold": "Oklahoma State University"
+    },
+    {
+      "i": 203,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Detroit, Michigan.",
+      "prediction_chars": 18,
+      "gold": "Detroit, Michigan"
+    },
+    {
+      "i": 204,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Gweilo",
+      "prediction_chars": 6,
+      "gold": "Gweilo"
+    },
+    {
+      "i": 205,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Wolf Creek",
+      "prediction_chars": 10,
+      "gold": "Wolf Creek"
+    },
+    {
+      "i": 206,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes.",
+      "prediction_chars": 4,
+      "gold": "yes"
+    },
+    {
+      "i": 207,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1974",
+      "prediction_chars": 4,
+      "gold": "1974"
+    },
+    {
+      "i": 208,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Netherlands.",
+      "prediction_chars": 16,
+      "gold": "Netherlands"
+    },
+    {
+      "i": 209,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Mystery-drama",
+      "prediction_chars": 13,
+      "gold": "American-Canadian mystery-drama"
+    },
+    {
+      "i": 210,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Sonerila has more species.",
+      "prediction_chars": 26,
+      "gold": "Sonerila"
+    },
+    {
+      "i": 211,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Hong Kong and Japan",
+      "prediction_chars": 19,
+      "gold": "Japan and Hong Kong"
+    },
+    {
+      "i": 212,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "University of Texas Longhorns football team",
+      "prediction_chars": 43,
+      "gold": "University of Texas Longhorns"
+    },
+    {
+      "i": 213,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "Duke University was founded first.",
+      "prediction_chars": 34,
+      "gold": "Duke University"
+    },
+    {
+      "i": 214,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rob Reiner",
+      "prediction_chars": 10,
+      "gold": "Rob Reiner"
+    },
+    {
+      "i": 215,
+      "correct": false,
+      "score": 0.25,
+      "prediction": "La Mesopotamia or Regi\u00f3n Mesopot\u00e1mica",
+      "prediction_chars": 37,
+      "gold": "Mesopotamia"
+    },
+    {
+      "i": 216,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 217,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "The entertainment industry.",
+      "prediction_chars": 27,
+      "gold": "entertainment"
+    },
+    {
+      "i": 218,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "loud and dirty",
+      "prediction_chars": 14,
+      "gold": "as loud and dirty as possible"
+    },
+    {
+      "i": 219,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Double Agent",
+      "prediction_chars": 12,
+      "gold": "Double Agent"
+    },
+    {
+      "i": 220,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No",
+      "prediction_chars": 2,
+      "gold": "yes"
+    },
+    {
+      "i": 221,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Drillers Stadium",
+      "prediction_chars": 16,
+      "gold": "Drillers Stadium"
+    },
+    {
+      "i": 222,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Bow River and the Elbow River.",
+      "prediction_chars": 34,
+      "gold": "Bow River and the Elbow River"
+    },
+    {
+      "i": 223,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Smith!",
+      "prediction_chars": 6,
+      "gold": "Smith!"
+    },
+    {
+      "i": 224,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "South Asia and the Middle East",
+      "prediction_chars": 30,
+      "gold": "South Asia and the Middle East"
+    },
+    {
+      "i": 225,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Sam Phillips",
+      "prediction_chars": 12,
+      "gold": "Sam Phillips"
+    },
+    {
+      "i": 226,
+      "correct": false,
+      "score": 0.19999999999999998,
+      "prediction": "A tragedy.",
+      "prediction_chars": 10,
+      "gold": "\"Carmen\", perhaps the most famous \"op\u00e9ra comique\", is a tragedy"
+    },
+    {
+      "i": 227,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Democratic",
+      "prediction_chars": 10,
+      "gold": "Democratic"
+    },
+    {
+      "i": 228,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "They were both created by Stan Lee and Steve Ditko.",
+      "prediction_chars": 51,
+      "gold": "comic"
+    },
+    {
+      "i": 229,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Eielson Air Force Base",
+      "prediction_chars": 22,
+      "gold": "Eielson Air Force Base"
+    },
+    {
+      "i": 230,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Tulsa, Oklahoma",
+      "prediction_chars": 15,
+      "gold": "Tulsa"
+    },
+    {
+      "i": 231,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "A combination of a loop and a roll.",
+      "prediction_chars": 35,
+      "gold": "combination of a loop and a roll"
+    },
+    {
+      "i": 232,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Time Warner.",
+      "prediction_chars": 12,
+      "gold": "Southern Progress Corporation"
+    },
+    {
+      "i": 233,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Alan Passaro.",
+      "prediction_chars": 13,
+      "gold": "Alan Passaro"
+    },
+    {
+      "i": 234,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "The Home Rule League (1873\u20131882)",
+      "prediction_chars": 32,
+      "gold": "The Home Rule League"
+    },
+    {
+      "i": 235,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes.",
+      "prediction_chars": 4,
+      "gold": "yes"
+    },
+    {
+      "i": 236,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "2005",
+      "prediction_chars": 4,
+      "gold": "2013"
+    },
+    {
+      "i": 237,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Kitty Hawk",
+      "prediction_chars": 10,
+      "gold": "\"Kitty Hawk\""
+    },
+    {
+      "i": 238,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Francis McPeake",
+      "prediction_chars": 15,
+      "gold": "Francis McPeake"
+    },
+    {
+      "i": 239,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Hormel Foods Corporation",
+      "prediction_chars": 24,
+      "gold": "Hormel Foods Corporation"
+    },
+    {
+      "i": 240,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "World War II.",
+      "prediction_chars": 13,
+      "gold": "World War II"
+    },
+    {
+      "i": 241,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "The Entente or Allied powers.",
+      "prediction_chars": 29,
+      "gold": "The Allies of World War I"
+    },
+    {
+      "i": 242,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "January 14, 2010.",
+      "prediction_chars": 17,
+      "gold": "January 14, 2010"
+    },
+    {
+      "i": 243,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rachel, Nevada.",
+      "prediction_chars": 15,
+      "gold": "Rachel, Nevada"
+    },
+    {
+      "i": 244,
+      "correct": false,
+      "score": 0.33333333333333337,
+      "prediction": "McCarran",
+      "prediction_chars": 8,
+      "gold": "U.S. Senator Pat McCarran"
+    },
+    {
+      "i": 245,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Golden Globe nomination.",
+      "prediction_chars": 24,
+      "gold": "Golden Globe"
+    },
+    {
+      "i": 246,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "August 11, 1946",
+      "prediction_chars": 15,
+      "gold": "August 11, 1946"
+    },
+    {
+      "i": 247,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Curling",
+      "prediction_chars": 7,
+      "gold": "Curling"
+    },
+    {
+      "i": 248,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Comme des Gar\u00e7ons",
+      "prediction_chars": 17,
+      "gold": "Comme des Gar\u00e7ons"
+    },
+    {
+      "i": 249,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Suffolk County.",
+      "prediction_chars": 15,
+      "gold": "Suffolk"
+    },
+    {
+      "i": 250,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Republican",
+      "prediction_chars": 10,
+      "gold": "U.S. Army"
+    },
+    {
+      "i": 251,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "Bing Crosby",
+      "prediction_chars": 11,
+      "gold": "Harry Lillis \"Bing\" Crosby Jr."
+    },
+    {
+      "i": 252,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no mention of Hermann G\u00f6ring in the passage.",
+      "prediction_chars": 53,
+      "gold": "A veteran World War I fighter pilot ace"
+    },
+    {
+      "i": 253,
+      "correct": false,
+      "score": 0.33333333333333337,
+      "prediction": "C. J. Cherryh",
+      "prediction_chars": 13,
+      "gold": "Carolyn Janice Cherry (born September 1, 1942), better known by the pen name C. J. Cherryh,"
+    },
+    {
+      "i": 254,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Jack White",
+      "prediction_chars": 10,
+      "gold": "Jack White"
+    },
+    {
+      "i": 255,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Guarding livestock.",
+      "prediction_chars": 19,
+      "gold": "to guard"
+    },
+    {
+      "i": 256,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Philip Jos\u00e9 Farmer",
+      "prediction_chars": 18,
+      "gold": "Philip Jos\u00e9 Farmer"
+    },
+    {
+      "i": 257,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 258,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "The Texas Longhorns",
+      "prediction_chars": 19,
+      "gold": "Texas Longhorns men's basketball team"
+    },
+    {
+      "i": 259,
+      "correct": false,
+      "score": 0.2222222222222222,
+      "prediction": "12",
+      "prediction_chars": 2,
+      "gold": "Bocelli became completely blind at the age of 12"
+    },
+    {
+      "i": 260,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Battle of the Rosebud.",
+      "prediction_chars": 26,
+      "gold": "Battle of the Rosebud"
+    },
+    {
+      "i": 261,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Mathematician.",
+      "prediction_chars": 14,
+      "gold": "mathematician"
+    },
+    {
+      "i": 262,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 263,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 264,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "World War II",
+      "prediction_chars": 12,
+      "gold": "World War II"
+    },
+    {
+      "i": 265,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "United States",
+      "prediction_chars": 13,
+      "gold": "United States"
+    },
+    {
+      "i": 266,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "J. Searle Dawley",
+      "prediction_chars": 16,
+      "gold": "James Searle Dawley"
+    },
+    {
+      "i": 267,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 268,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "September 5, 2017",
+      "prediction_chars": 17,
+      "gold": "September 5, 2017"
+    },
+    {
+      "i": 269,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes.",
+      "prediction_chars": 4,
+      "gold": "yes"
+    },
+    {
+      "i": 270,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "William Michael Albert Broad",
+      "prediction_chars": 28,
+      "gold": "William Michael Albert Broad"
+    },
+    {
+      "i": 271,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "OK Mozart",
+      "prediction_chars": 9,
+      "gold": "OK Mozart"
+    },
+    {
+      "i": 272,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "People v. Turner",
+      "prediction_chars": 16,
+      "gold": "People v. Turner"
+    },
+    {
+      "i": 273,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Johnny Edwards",
+      "prediction_chars": 14,
+      "gold": "John Douglas \"Johnny\" Edwards"
+    },
+    {
+      "i": 274,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "27,000",
+      "prediction_chars": 6,
+      "gold": "27,000"
+    },
+    {
+      "i": 275,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "2001",
+      "prediction_chars": 4,
+      "gold": "2001"
+    },
+    {
+      "i": 276,
+      "correct": false,
+      "score": 0.33333333333333337,
+      "prediction": "16th",
+      "prediction_chars": 4,
+      "gold": "world's 16th largest city"
+    },
+    {
+      "i": 277,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information in the passage about the producer of Everybody's Crazy, or the genre of music it fits into.",
+      "prediction_chars": 115,
+      "gold": "melodic hard rock"
+    },
+    {
+      "i": 278,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "The Royal Air Force (RAF).",
+      "prediction_chars": 26,
+      "gold": "Royal Air Force"
+    },
+    {
+      "i": 279,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Deep Purple",
+      "prediction_chars": 11,
+      "gold": "Deep Purple"
+    },
+    {
+      "i": 280,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Beau Rivage.",
+      "prediction_chars": 12,
+      "gold": "Beau Rivage"
+    },
+    {
+      "i": 281,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Mickey Mouse Cup",
+      "prediction_chars": 16,
+      "gold": "Mickey Mouse Cup"
+    },
+    {
+      "i": 282,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "LNW-80",
+      "prediction_chars": 6,
+      "gold": "LNW-80"
+    },
+    {
+      "i": 283,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Juilliard School.",
+      "prediction_chars": 21,
+      "gold": "Juilliard School"
+    },
+    {
+      "i": 284,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Easy",
+      "prediction_chars": 4,
+      "gold": "Netflix"
+    },
+    {
+      "i": 285,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Matt Lucas",
+      "prediction_chars": 10,
+      "gold": "Matt Lucas"
+    },
+    {
+      "i": 286,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "The Great Northern Railway transcontinental railway line.",
+      "prediction_chars": 57,
+      "gold": "Great Northern Railway"
+    },
+    {
+      "i": 287,
+      "correct": false,
+      "score": 0.33333333333333337,
+      "prediction": "The Krypto Report, a podcast produced by the white supremacist site \"The Daily Stormer\".",
+      "prediction_chars": 88,
+      "gold": "The Daily Stormer"
+    },
+    {
+      "i": 288,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Golden Calf",
+      "prediction_chars": 11,
+      "gold": "Best Actor in 2013"
+    },
+    {
+      "i": 289,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Christopher Guest",
+      "prediction_chars": 17,
+      "gold": "Christopher Haden-Guest"
+    },
+    {
+      "i": 290,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes.",
+      "prediction_chars": 4,
+      "gold": "yes"
+    },
+    {
+      "i": 291,
+      "correct": false,
+      "score": 0.25,
+      "prediction": "Allure",
+      "prediction_chars": 6,
+      "gold": "Allure is an American women\u2019s beauty magazine"
+    },
+    {
+      "i": 292,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Liam Cunningham.",
+      "prediction_chars": 16,
+      "gold": "Liam Cunningham"
+    },
+    {
+      "i": 293,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "GNU GPLv3",
+      "prediction_chars": 9,
+      "gold": "GNU GPLv3"
+    },
+    {
+      "i": 294,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Naomi Campbell",
+      "prediction_chars": 14,
+      "gold": "Naomi Elaine Campbell"
+    },
+    {
+      "i": 295,
+      "correct": false,
+      "score": 0.16,
+      "prediction": "He flew solo to Scotland in an attempt to negotiate peace with the United Kingdom during World War II.",
+      "prediction_chars": 102,
+      "gold": "report Hess's illegal May 1941 flight to Scotland"
+    },
+    {
+      "i": 296,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Lutheranism, and thus Protestantism.",
+      "prediction_chars": 36,
+      "gold": "Protestantism"
+    },
+    {
+      "i": 297,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rose Mary Woods",
+      "prediction_chars": 15,
+      "gold": "Rose Mary Woods"
+    },
+    {
+      "i": 298,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Christopher Rich",
+      "prediction_chars": 16,
+      "gold": "Christopher Rich"
+    },
+    {
+      "i": 299,
+      "correct": false,
+      "score": 0.4444444444444445,
+      "prediction": "Greek Fire originated in a more southern location.",
+      "prediction_chars": 50,
+      "gold": "Greek Fire"
+    },
+    {
+      "i": 300,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Close range combat.",
+      "prediction_chars": 19,
+      "gold": "close range combat"
+    },
+    {
+      "i": 301,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "A cocktail.",
+      "prediction_chars": 11,
+      "gold": "cocktail"
+    },
+    {
+      "i": 302,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Lieutenant Colonel Iceal E. \"Gene\" Hambleton.",
+      "prediction_chars": 45,
+      "gold": "Lieutenant Colonel Iceal E. \"Gene\" Hambleton"
+    },
+    {
+      "i": 303,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ezhou",
+      "prediction_chars": 5,
+      "gold": "Ezhou"
+    },
+    {
+      "i": 304,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "310",
+      "prediction_chars": 3,
+      "gold": "310"
+    },
+    {
+      "i": 305,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Nairobi, Kenya",
+      "prediction_chars": 14,
+      "gold": "Nairobi, Kenya"
+    },
+    {
+      "i": 306,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Canada",
+      "prediction_chars": 6,
+      "gold": "Canada"
+    },
+    {
+      "i": 307,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No, Xingcheng has a population of about one million, which is larger than Linzhou, Henan.",
+      "prediction_chars": 89,
+      "gold": "yes"
+    },
+    {
+      "i": 308,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Rob Sitch",
+      "prediction_chars": 9,
+      "gold": "Robert Ian \"Rob\" Sitch"
+    },
+    {
+      "i": 309,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "\"My Boss, My Hero\"",
+      "prediction_chars": 18,
+      "gold": "My Boss, My Hero"
+    },
+    {
+      "i": 310,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Hakim Jamal",
+      "prediction_chars": 11,
+      "gold": "Hakim Abdullah Jamal"
+    },
+    {
+      "i": 311,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "67,575",
+      "prediction_chars": 6,
+      "gold": "67,575"
+    },
+    {
+      "i": 312,
+      "correct": false,
+      "score": 0.25,
+      "prediction": "Ross Case reached a higher career-high singles ranking (World No. 19) than Slobodan \u017divojinovi\u0107 (World No. 15).",
+      "prediction_chars": 111,
+      "gold": "Ross Case"
+    },
+    {
+      "i": 313,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Todd McFarlane",
+      "prediction_chars": 14,
+      "gold": "Todd McFarlane"
+    },
+    {
+      "i": 314,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Stone Brewing Co.",
+      "prediction_chars": 17,
+      "gold": "Stone Brewing"
+    },
+    {
+      "i": 315,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 316,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Genus of flowering plants",
+      "prediction_chars": 25,
+      "gold": "genus"
+    },
+    {
+      "i": 317,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "SEAL Team Six",
+      "prediction_chars": 13,
+      "gold": "SEAL Team Six"
+    },
+    {
+      "i": 318,
+      "correct": true,
+      "score": 0.6153846153846153,
+      "prediction": "Their heart would be weighed against the feather of truth.",
+      "prediction_chars": 58,
+      "gold": "against the feather of truth"
+    },
+    {
+      "i": 319,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "1987-2010",
+      "prediction_chars": 9,
+      "gold": "between 1987 and 2010"
+    },
+    {
+      "i": 320,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Dominique Wilkins",
+      "prediction_chars": 17,
+      "gold": "Jacques Dominique Wilkins"
+    },
+    {
+      "i": 321,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Hennepin County",
+      "prediction_chars": 15,
+      "gold": "Hennepin County"
+    },
+    {
+      "i": 322,
+      "correct": true,
+      "score": 0.9,
+      "prediction": "Macy's, Sears, Nordstrom, Bloomingdale's, and Saks Fifth Avenue.",
+      "prediction_chars": 64,
+      "gold": "three Macy's stores, Sears, Nordstrom, Bloomingdale's, and Saks Fifth Avenue"
+    },
+    {
+      "i": 323,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Chaerophyllum",
+      "prediction_chars": 13,
+      "gold": "Chaerophyllum"
+    },
+    {
+      "i": 324,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Truman W. \"True\" Williams",
+      "prediction_chars": 25,
+      "gold": "Truman W. \"True\" Williams"
+    },
+    {
+      "i": 325,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rock and roll.",
+      "prediction_chars": 14,
+      "gold": "rock and roll"
+    },
+    {
+      "i": 326,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Missouri",
+      "prediction_chars": 8,
+      "gold": "Missouri"
+    },
+    {
+      "i": 327,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Walt Disney Feature Animation",
+      "prediction_chars": 29,
+      "gold": "Walt Disney"
+    },
+    {
+      "i": 328,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Water",
+      "prediction_chars": 5,
+      "gold": "water"
+    },
+    {
+      "i": 329,
+      "correct": true,
+      "score": 0.6,
+      "prediction": "Emilio S\u00e1nchez is older.",
+      "prediction_chars": 24,
+      "gold": "Emilio \u00c1ngel S\u00e1nchez Vicario"
+    },
+    {
+      "i": 330,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Emilia-Romagna Region",
+      "prediction_chars": 21,
+      "gold": "Emilia-Romagna Region"
+    },
+    {
+      "i": 331,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Maria Brink",
+      "prediction_chars": 11,
+      "gold": "Maria Brink"
+    },
+    {
+      "i": 332,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Jane Mayer",
+      "prediction_chars": 10,
+      "gold": "Jane Mayer"
+    },
+    {
+      "i": 333,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "729",
+      "prediction_chars": 3,
+      "gold": "729 at the 2010 census"
+    },
+    {
+      "i": 334,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "The IFBB.",
+      "prediction_chars": 9,
+      "gold": "IFBB professional bodybuilding"
+    },
+    {
+      "i": 335,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "University of Oxford.",
+      "prediction_chars": 21,
+      "gold": "University of Oxford, England"
+    },
+    {
+      "i": 336,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ben Savage.",
+      "prediction_chars": 11,
+      "gold": "Ben Savage"
+    },
+    {
+      "i": 337,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Pim Fortuyn",
+      "prediction_chars": 11,
+      "gold": "Wilhelmus Simon Petrus Fortuijn, known as Pim Fortuyn"
+    },
+    {
+      "i": 338,
+      "correct": false,
+      "score": 0.25,
+      "prediction": "Cornell University",
+      "prediction_chars": 18,
+      "gold": "New York University School of Law"
+    },
+    {
+      "i": 339,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Norwegian",
+      "prediction_chars": 9,
+      "gold": "Norwegian language"
+    },
+    {
+      "i": 340,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "1993",
+      "prediction_chars": 4,
+      "gold": "Tian Tan Buddha"
+    },
+    {
+      "i": 341,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Jon Hume",
+      "prediction_chars": 8,
+      "gold": "Jon Hume"
+    },
+    {
+      "i": 342,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "Sirius XM Satellite Radio.",
+      "prediction_chars": 26,
+      "gold": "Sirius XM Holdings"
+    },
+    {
+      "i": 343,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Danny Elfman",
+      "prediction_chars": 12,
+      "gold": "Danny Elfman"
+    },
+    {
+      "i": 344,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "I-22",
+      "prediction_chars": 4,
+      "gold": "Interstate 22"
+    },
+    {
+      "i": 345,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ariel Ram\u00edrez",
+      "prediction_chars": 13,
+      "gold": "Ariel Ram\u00edrez"
+    },
+    {
+      "i": 346,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Channel 11",
+      "prediction_chars": 10,
+      "gold": "8"
+    },
+    {
+      "i": 347,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "by"
+    },
+    {
+      "i": 348,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "The Romantic era.",
+      "prediction_chars": 17,
+      "gold": "Romantic"
+    },
+    {
+      "i": 349,
+      "correct": true,
+      "score": 0.7272727272727273,
+      "prediction": "B\u00e9la Bart\u00f3k",
+      "prediction_chars": 11,
+      "gold": "B\u00e9la Viktor J\u00e1nos Bart\u00f3k"
+    },
+    {
+      "i": 350,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Robot Overlords",
+      "prediction_chars": 15,
+      "gold": "Robot Overlords"
+    },
+    {
+      "i": 351,
+      "correct": false,
+      "score": 0.08333333333333333,
+      "prediction": "There is no information about the Saab JAS 39 Gripen in the passage. The passage is actually about a vehicle powered by the Volvo RM12, with a top speed of Mach 2.",
+      "prediction_chars": 163,
+      "gold": "2"
+    },
+    {
+      "i": 352,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Musicology",
+      "prediction_chars": 10,
+      "gold": "Musicology"
+    },
+    {
+      "i": 353,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Don Bluth",
+      "prediction_chars": 9,
+      "gold": "Don Bluth"
+    },
+    {
+      "i": 354,
+      "correct": false,
+      "score": 0.4444444444444444,
+      "prediction": "The Flamingo Las Vegas.",
+      "prediction_chars": 23,
+      "gold": "Las Vegas Strip in Paradise, Nevada"
+    },
+    {
+      "i": 355,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Sapsali",
+      "prediction_chars": 7,
+      "gold": "Sapsali"
+    },
+    {
+      "i": 356,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Somerset County, Pennsylvania.",
+      "prediction_chars": 30,
+      "gold": "Pennsylvania"
+    },
+    {
+      "i": 357,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1755",
+      "prediction_chars": 4,
+      "gold": "1755"
+    },
+    {
+      "i": 358,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Javier Frana was born first.",
+      "prediction_chars": 28,
+      "gold": "Sherwood Stewart"
+    },
+    {
+      "i": 359,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ghanaian national team.",
+      "prediction_chars": 23,
+      "gold": "Ghanaian national team"
+    },
+    {
+      "i": 360,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1945",
+      "prediction_chars": 4,
+      "gold": "1945"
+    },
+    {
+      "i": 361,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Switzerland",
+      "prediction_chars": 11,
+      "gold": "Switzerland"
+    },
+    {
+      "i": 362,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "1874-1994",
+      "prediction_chars": 9,
+      "gold": "1874 until 1994"
+    },
+    {
+      "i": 363,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Dallas",
+      "prediction_chars": 6,
+      "gold": "Dallas"
+    },
+    {
+      "i": 364,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "115 miles",
+      "prediction_chars": 9,
+      "gold": "about 115 miles (185 km)"
+    },
+    {
+      "i": 365,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Danish",
+      "prediction_chars": 6,
+      "gold": "Danish"
+    },
+    {
+      "i": 366,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Ladder",
+      "prediction_chars": 10,
+      "gold": "The Ladder"
+    },
+    {
+      "i": 367,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Rhode Island",
+      "prediction_chars": 12,
+      "gold": "Rhode Island"
+    },
+    {
+      "i": 368,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Sean Maguire",
+      "prediction_chars": 12,
+      "gold": "Sean Maguire"
+    },
+    {
+      "i": 369,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "1,467",
+      "prediction_chars": 5,
+      "gold": "1,467 rooms"
+    },
+    {
+      "i": 370,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "2,664",
+      "prediction_chars": 5,
+      "gold": "2,664"
+    },
+    {
+      "i": 371,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ursus americanus",
+      "prediction_chars": 16,
+      "gold": "Ursus americanus"
+    },
+    {
+      "i": 372,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Blood and soil (Blut und Boden)",
+      "prediction_chars": 31,
+      "gold": "Blood and soil"
+    },
+    {
+      "i": 373,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Jonghyun",
+      "prediction_chars": 8,
+      "gold": "Jonghyun"
+    },
+    {
+      "i": 374,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "D-Day",
+      "prediction_chars": 5,
+      "gold": "D-Day"
+    },
+    {
+      "i": 375,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Wayne Conley",
+      "prediction_chars": 12,
+      "gold": "Wayne Conley"
+    },
+    {
+      "i": 376,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Matt Winer",
+      "prediction_chars": 10,
+      "gold": "Matthew Ward Winer"
+    },
+    {
+      "i": 377,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no information about Hunchun in the passage.",
+      "prediction_chars": 53,
+      "gold": "Shijiazhuang"
+    },
+    {
+      "i": 378,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "I can't answer that question. The passage does not mention Arlecchino.",
+      "prediction_chars": 70,
+      "gold": "music"
+    },
+    {
+      "i": 379,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Glencore",
+      "prediction_chars": 8,
+      "gold": "Mercuria Energy Group Ltd"
+    },
+    {
+      "i": 380,
+      "correct": true,
+      "score": 0.7499999999999999,
+      "prediction": "The 18th congressional district.",
+      "prediction_chars": 32,
+      "gold": "Pennsylvania's 18th congressional district"
+    },
+    {
+      "i": 381,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Albert Costa",
+      "prediction_chars": 12,
+      "gold": "Costa"
+    },
+    {
+      "i": 382,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The \"Home of the Submarine Force\".",
+      "prediction_chars": 34,
+      "gold": "\"Home of the Submarine Force\""
+    },
+    {
+      "i": 383,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "West Palm Beach.",
+      "prediction_chars": 16,
+      "gold": "Miami"
+    },
+    {
+      "i": 384,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Mermaid",
+      "prediction_chars": 7,
+      "gold": "A mermaid"
+    },
+    {
+      "i": 385,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "public",
+      "prediction_chars": 6,
+      "gold": "public"
+    },
+    {
+      "i": 386,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No",
+      "prediction_chars": 2,
+      "gold": "yes"
+    },
+    {
+      "i": 387,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Aloe Vera of America",
+      "prediction_chars": 20,
+      "gold": "Aloe Vera of America"
+    },
+    {
+      "i": 388,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "On film.",
+      "prediction_chars": 8,
+      "gold": "erotic thriller film"
+    },
+    {
+      "i": 389,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 390,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "120",
+      "prediction_chars": 3,
+      "gold": "more than 120 countries"
+    },
+    {
+      "i": 391,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Three",
+      "prediction_chars": 5,
+      "gold": "3"
+    },
+    {
+      "i": 392,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Lady Charlotte Elliot",
+      "prediction_chars": 21,
+      "gold": "Charlotte Carnegie"
+    },
+    {
+      "i": 393,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Logar",
+      "prediction_chars": 5,
+      "gold": "Puli Alam"
+    },
+    {
+      "i": 394,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Lysiloma",
+      "prediction_chars": 8,
+      "gold": "Lysiloma"
+    },
+    {
+      "i": 395,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Brig Gen Augustine Warner Robins.",
+      "prediction_chars": 33,
+      "gold": "Brig Gen Augustine Warner Robins"
+    },
+    {
+      "i": 396,
+      "correct": true,
+      "score": 0.7272727272727273,
+      "prediction": "Frank Wildhorn, Leslie Bricusse, and Steve Cuden.",
+      "prediction_chars": 49,
+      "gold": "Wildhorn, Bricusse and Cuden"
+    },
+    {
+      "i": 397,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Laysan",
+      "prediction_chars": 6,
+      "gold": "Laysan"
+    },
+    {
+      "i": 398,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Preacher",
+      "prediction_chars": 8,
+      "gold": "the Vertigo series \"Preacher\""
+    },
+    {
+      "i": 399,
+      "correct": false,
+      "score": 0.28571428571428575,
+      "prediction": "World War I",
+      "prediction_chars": 11,
+      "gold": "the Cold War (1947\u201391)"
+    },
+    {
+      "i": 400,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Hopeless Records",
+      "prediction_chars": 16,
+      "gold": "Hopeless Records"
+    },
+    {
+      "i": 401,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Tamara Ecclestone Rutland",
+      "prediction_chars": 25,
+      "gold": "Tamara Ecclestone"
+    },
+    {
+      "i": 402,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "English",
+      "prediction_chars": 7,
+      "gold": "English"
+    },
+    {
+      "i": 403,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Orcs",
+      "prediction_chars": 4,
+      "gold": "Orc characters"
+    },
+    {
+      "i": 404,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "a marker pen",
+      "prediction_chars": 12,
+      "gold": "marker pen"
+    },
+    {
+      "i": 405,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Suite Life of Zack & Cody",
+      "prediction_chars": 29,
+      "gold": "The Suite Life of Zack & Cody"
+    },
+    {
+      "i": 406,
+      "correct": true,
+      "score": 0.7272727272727273,
+      "prediction": "The long history of Japan and the Imperial dynasty.",
+      "prediction_chars": 51,
+      "gold": "the long history of Japan"
+    },
+    {
+      "i": 407,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "February 14, 1859",
+      "prediction_chars": 17,
+      "gold": "February 14, 1859"
+    },
+    {
+      "i": 408,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "15 miles",
+      "prediction_chars": 8,
+      "gold": "15"
+    },
+    {
+      "i": 409,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "Peach or a nectarine.",
+      "prediction_chars": 21,
+      "gold": "peach"
+    },
+    {
+      "i": 410,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Julie Taymor.",
+      "prediction_chars": 13,
+      "gold": "Julie Taymor"
+    },
+    {
+      "i": 411,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Kamehameha I",
+      "prediction_chars": 12,
+      "gold": "Kalokuokamaile"
+    },
+    {
+      "i": 412,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Bobby Hurley",
+      "prediction_chars": 12,
+      "gold": "Robert Matthew Hurley"
+    },
+    {
+      "i": 413,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Columbia",
+      "prediction_chars": 8,
+      "gold": "Columbia, Maryland"
+    },
+    {
+      "i": 414,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "September 18, 2010",
+      "prediction_chars": 18,
+      "gold": "September 18, 2010"
+    },
+    {
+      "i": 415,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The Mountain West Conference.",
+      "prediction_chars": 29,
+      "gold": "Mountain West Conference"
+    },
+    {
+      "i": 416,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Gatwick Airport",
+      "prediction_chars": 15,
+      "gold": "Gatwick Airport"
+    },
+    {
+      "i": 417,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "U2",
+      "prediction_chars": 2,
+      "gold": "U2"
+    },
+    {
+      "i": 418,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "40",
+      "prediction_chars": 2,
+      "gold": "40 members"
+    },
+    {
+      "i": 419,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Los Angeles",
+      "prediction_chars": 11,
+      "gold": "Los Angeles"
+    },
+    {
+      "i": 420,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes.",
+      "prediction_chars": 4,
+      "gold": "yes"
+    },
+    {
+      "i": 421,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Gary Oldman",
+      "prediction_chars": 11,
+      "gold": "Gary Oldman"
+    },
+    {
+      "i": 422,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "British",
+      "prediction_chars": 7,
+      "gold": "British"
+    },
+    {
+      "i": 423,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Chrysler.",
+      "prediction_chars": 9,
+      "gold": "Chrysler"
+    },
+    {
+      "i": 424,
+      "correct": true,
+      "score": 0.5714285714285715,
+      "prediction": "Into the Woods by Stephen Sondheim.",
+      "prediction_chars": 35,
+      "gold": "Stephen Sondheim"
+    },
+    {
+      "i": 425,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "no"
+    },
+    {
+      "i": 426,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Tennis.",
+      "prediction_chars": 7,
+      "gold": "tennis"
+    },
+    {
+      "i": 427,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Professional footballer.",
+      "prediction_chars": 24,
+      "gold": "professional footballer"
+    },
+    {
+      "i": 428,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "The Mwabvi river.",
+      "prediction_chars": 17,
+      "gold": "Buffalo"
+    },
+    {
+      "i": 429,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Jaleel White",
+      "prediction_chars": 12,
+      "gold": "Jaleel Ahmad White"
+    },
+    {
+      "i": 430,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Milan",
+      "prediction_chars": 5,
+      "gold": "Milan"
+    },
+    {
+      "i": 431,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "23 December 2014",
+      "prediction_chars": 16,
+      "gold": "23 December 2014"
+    },
+    {
+      "i": 432,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Turkey",
+      "prediction_chars": 6,
+      "gold": "Turkey"
+    },
+    {
+      "i": 433,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Saint Michael, Barbados",
+      "prediction_chars": 23,
+      "gold": "Saint Michael, Barbados"
+    },
+    {
+      "i": 434,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Midtown Manhattan in New York City.",
+      "prediction_chars": 35,
+      "gold": "Midtown Manhattan in New York City,"
+    },
+    {
+      "i": 435,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Helsinki.",
+      "prediction_chars": 9,
+      "gold": "Helsinki, Finland"
+    },
+    {
+      "i": 436,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Kurt Gerstein and Rudolf H\u00f6ss.",
+      "prediction_chars": 30,
+      "gold": "Rudolf H\u00f6ss"
+    },
+    {
+      "i": 437,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "August 19, 1968",
+      "prediction_chars": 15,
+      "gold": "August 19, 1968"
+    },
+    {
+      "i": 438,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "2 March 1972",
+      "prediction_chars": 12,
+      "gold": "2 March 1972"
+    },
+    {
+      "i": 439,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "The River Thames.",
+      "prediction_chars": 17,
+      "gold": "Thames"
+    },
+    {
+      "i": 440,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Alfred Preis",
+      "prediction_chars": 12,
+      "gold": "Alfred Preis"
+    },
+    {
+      "i": 441,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "William Fichtner",
+      "prediction_chars": 16,
+      "gold": "William Fichtner"
+    },
+    {
+      "i": 442,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "\"Traumnovelle\" (\"Dream Story\")",
+      "prediction_chars": 30,
+      "gold": "\"Traumnovelle\" (\"Dream Story\")"
+    },
+    {
+      "i": 443,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "November 10, 2017",
+      "prediction_chars": 17,
+      "gold": "November 10, 2017"
+    },
+    {
+      "i": 444,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Trent Alexander-Arnold",
+      "prediction_chars": 22,
+      "gold": "Trent Alexander-Arnold"
+    },
+    {
+      "i": 445,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Kristine Leahy",
+      "prediction_chars": 14,
+      "gold": "Kristine Leahy"
+    },
+    {
+      "i": 446,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Smoothie King Center",
+      "prediction_chars": 20,
+      "gold": "Smoothie King Center"
+    },
+    {
+      "i": 447,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "India's first dedicated multi-wavelength space observatory.",
+      "prediction_chars": 59,
+      "gold": "India's first dedicated multi-wavelength space observatory."
+    },
+    {
+      "i": 448,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Henry Lau",
+      "prediction_chars": 9,
+      "gold": "Henry Lau"
+    },
+    {
+      "i": 449,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "560",
+      "prediction_chars": 3,
+      "gold": "560"
+    },
+    {
+      "i": 450,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "2013",
+      "prediction_chars": 4,
+      "gold": "2013"
+    },
+    {
+      "i": 451,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Chiwetel Ejiofor",
+      "prediction_chars": 16,
+      "gold": "Chiwetel Ejiofor"
+    },
+    {
+      "i": 452,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Han Solo.",
+      "prediction_chars": 9,
+      "gold": "Han Solo"
+    },
+    {
+      "i": 453,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Japanese",
+      "prediction_chars": 8,
+      "gold": "Japanese"
+    },
+    {
+      "i": 454,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Werner Herzog Eats His Shoe",
+      "prediction_chars": 27,
+      "gold": "Werner Herzog Eats His Shoe"
+    },
+    {
+      "i": 455,
+      "correct": true,
+      "score": 0.8571428571428571,
+      "prediction": "Denmark, Norway, and Sweden.",
+      "prediction_chars": 28,
+      "gold": "Denmark\u2013Norway\u2013Sweden"
+    },
+    {
+      "i": 456,
+      "correct": false,
+      "score": 0.4444444444444445,
+      "prediction": "Christopher McCulloch (also known as \"Jackson Publick\")",
+      "prediction_chars": 55,
+      "gold": "Christopher McCulloch"
+    },
+    {
+      "i": 457,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "The liberal revolutions of 1848.",
+      "prediction_chars": 32,
+      "gold": "the liberal revolutions of 1848"
+    },
+    {
+      "i": 458,
+      "correct": false,
+      "score": 0.42857142857142855,
+      "prediction": "Marie-Joseph Paul Yves Roch Gilbert du Motier, Marquis de Lafayette.",
+      "prediction_chars": 68,
+      "gold": "Marquis de Lafayette"
+    },
+    {
+      "i": 459,
+      "correct": true,
+      "score": 0.6,
+      "prediction": "Sandy Springs, Georgia",
+      "prediction_chars": 22,
+      "gold": "It is based in Sandy Springs, Georgia"
+    },
+    {
+      "i": 460,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1991",
+      "prediction_chars": 4,
+      "gold": "1991"
+    },
+    {
+      "i": 461,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Woolworth Building",
+      "prediction_chars": 18,
+      "gold": "Woolworth Building"
+    },
+    {
+      "i": 462,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1945 to 1951",
+      "prediction_chars": 12,
+      "gold": "1945 to 1951"
+    },
+    {
+      "i": 463,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "NBA Rookie of the Year Award",
+      "prediction_chars": 28,
+      "gold": "The National Basketball Association's Rookie of the Year"
+    },
+    {
+      "i": 464,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1958",
+      "prediction_chars": 4,
+      "gold": "1958"
+    },
+    {
+      "i": 465,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Jai Courtney",
+      "prediction_chars": 12,
+      "gold": "Scott Eastwood"
+    },
+    {
+      "i": 466,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Singer.",
+      "prediction_chars": 7,
+      "gold": "singer"
+    },
+    {
+      "i": 467,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Madeleine L'Engle.",
+      "prediction_chars": 18,
+      "gold": "Madeleine L'Engle"
+    },
+    {
+      "i": 468,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Ellen Glasgow lived longer.",
+      "prediction_chars": 27,
+      "gold": "N. Scott Momaday"
+    },
+    {
+      "i": 469,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "No.",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 470,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "National Lottery",
+      "prediction_chars": 16,
+      "gold": "state-franchised"
+    },
+    {
+      "i": 471,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Polk County",
+      "prediction_chars": 11,
+      "gold": "Polk"
+    },
+    {
+      "i": 472,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Che Guevara.",
+      "prediction_chars": 12,
+      "gold": "Che Guevara"
+    },
+    {
+      "i": 473,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Flying Padre",
+      "prediction_chars": 12,
+      "gold": "Flying Padre"
+    },
+    {
+      "i": 474,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Fiat Chrysler Automobiles N.V.",
+      "prediction_chars": 30,
+      "gold": "Fiat Chrysler Automobiles N.V."
+    },
+    {
+      "i": 475,
+      "correct": false,
+      "score": 0.3333333333333333,
+      "prediction": "Carnforth Joint station.",
+      "prediction_chars": 24,
+      "gold": "Borwick railway station"
+    },
+    {
+      "i": 476,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "January 4, 1976",
+      "prediction_chars": 15,
+      "gold": "January 4, 1976"
+    },
+    {
+      "i": 477,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Yes",
+      "prediction_chars": 3,
+      "gold": "yes"
+    },
+    {
+      "i": 478,
+      "correct": false,
+      "score": 0.5,
+      "prediction": "A large green dinosaur.",
+      "prediction_chars": 23,
+      "gold": "dinosaur"
+    },
+    {
+      "i": 479,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Agra",
+      "prediction_chars": 4,
+      "gold": "Agra"
+    },
+    {
+      "i": 480,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Belarus",
+      "prediction_chars": 7,
+      "gold": "Belarus"
+    },
+    {
+      "i": 481,
+      "correct": false,
+      "score": 0.2857142857142857,
+      "prediction": "Traditional music of the Andes, particularly that of the Aymara and Quechua speaking people of Bolivia.",
+      "prediction_chars": 103,
+      "gold": "traditional music"
+    },
+    {
+      "i": 482,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Downtown",
+      "prediction_chars": 8,
+      "gold": "Downtown"
+    },
+    {
+      "i": 483,
+      "correct": false,
+      "score": 0.4,
+      "prediction": "Steve Coogan",
+      "prediction_chars": 12,
+      "gold": "Stephen John Coogan"
+    },
+    {
+      "i": 484,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Barnoldswick",
+      "prediction_chars": 12,
+      "gold": "Barnoldswick"
+    },
+    {
+      "i": 485,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Wynantskill, New York",
+      "prediction_chars": 21,
+      "gold": "Hannaford"
+    },
+    {
+      "i": 486,
+      "correct": true,
+      "score": 0.8,
+      "prediction": "Anatoly Lunacharsky",
+      "prediction_chars": 19,
+      "gold": "Anatoly Vasilyevich Lunacharsky"
+    },
+    {
+      "i": 487,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1987",
+      "prediction_chars": 4,
+      "gold": "1987"
+    },
+    {
+      "i": 488,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "There is no First Vice Captain mentioned in the passage. The passage mentions Giorgio Chiellini as the second vice-captain, but it does not mention a First Vice Captain.",
+      "prediction_chars": 169,
+      "gold": "centre-back"
+    },
+    {
+      "i": 489,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Buck Owens and the Buckaroos",
+      "prediction_chars": 28,
+      "gold": "Buck Owens"
+    },
+    {
+      "i": 490,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Ferdinand Magellan",
+      "prediction_chars": 18,
+      "gold": "Ferdinand Magellan"
+    },
+    {
+      "i": 491,
+      "correct": true,
+      "score": 0.9411764705882353,
+      "prediction": "Poi, Kalua pig, poke, lomi salmon, opihi, and haupia.",
+      "prediction_chars": 53,
+      "gold": "poi, Kalua pig, poke, lomi salmon, opihi, haupia"
+    },
+    {
+      "i": 492,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Nelson County.",
+      "prediction_chars": 14,
+      "gold": "Nelson County"
+    },
+    {
+      "i": 493,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "Mookie Blaylock",
+      "prediction_chars": 15,
+      "gold": "Mookie Blaylock"
+    },
+    {
+      "i": 494,
+      "correct": false,
+      "score": 0.08695652173913043,
+      "prediction": "There is no information in the passage that the actor starring in Good Boy! was a native of Atlanta. The passage actually mentions Brittany Murphy, who was a native of Atlanta.",
+      "prediction_chars": 176,
+      "gold": "Tai Frasier in \"Clueless\""
+    },
+    {
+      "i": 495,
+      "correct": true,
+      "score": 0.888888888888889,
+      "prediction": "Dick Smith Super-80 Computer",
+      "prediction_chars": 28,
+      "gold": "Dick Smith Super-80"
+    },
+    {
+      "i": 496,
+      "correct": false,
+      "score": 0.0,
+      "prediction": "Courteney Cox",
+      "prediction_chars": 13,
+      "gold": "Laurie Metcalf"
+    },
+    {
+      "i": 497,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Biloxi",
+      "prediction_chars": 6,
+      "gold": "Gulfport, Biloxi"
+    },
+    {
+      "i": 498,
+      "correct": true,
+      "score": 0.6666666666666666,
+      "prediction": "Edison Chen",
+      "prediction_chars": 11,
+      "gold": "Edison Koon-hei Chen"
+    },
+    {
+      "i": 499,
+      "correct": true,
+      "score": 1.0,
+      "prediction": "1876",
+      "prediction_chars": 4,
+      "gold": "1876"
+    }
+  ],
+  "hop_records_first_batch": [],
+  "total_sec": 20.60345473199982,
+  "sec_per_item": 0.04120690946399964,
+  "layer_retention": null,
+  "kept_layers": null,
+  "hook_records": [],
+  "peak_mem_bytes": 17434424832,
+  "cache_bytes_at_final_hop_mean": 0.0,
+  "attention_positions_at_final_hop_mean": 0.0,
+  "cache_stat_batches": 0,
+  "ragged_path": "n/a"
+}
