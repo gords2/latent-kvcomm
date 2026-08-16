@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import random
 
-from lkv.data import countries, gsm8k, hotpotqa, mbppplus
+from lkv.data import countries, gsm8k, hotpotqa, mbppplus, tipsheets
 
 _LOADERS = {
     "gsm8k": gsm8k.load,
     "mbppplus": mbppplus.load,
     "hotpotqa": hotpotqa.load,
     "countries": countries.load,
+    "tipsheets": tipsheets.load,
 }
 
 # Paper Table 4 sample counts, used when max_samples is -1.
