@@ -7,7 +7,7 @@ environment is solved, both LatentMAS gates ran, and **K1 is broken in a way tha
 must be fixed before any KVComm number means anything**. All 18 run records are
 committed under `runs/`. Both droplets were destroyed.
 
-- Suite: **163/163** green on CPU, no GPU or network needed.
+- Suite: **165/165** green on CPU, no GPU or network needed.
 - Measured defects and deviations: `docs/FINDINGS.md`. **Read before citing any number.**
 - The spec: `docs/superpowers/plans/2026-08-09-latentmas-kvcomm.md` (21 tasks).
 - Per-task process log: `.superpowers/sdd/2026-08-09-latentmas-kvcomm/progress.md` (git-ignored, local only).
@@ -83,7 +83,7 @@ mkdir -p lkv/data/files
 cp /tmp/kvcomm/dataloader/data/countries.jsonl /tmp/kvcomm/dataloader/data/tipsheets.jsonl lkv/data/files/
 ```
 
-**Verify before running anything:** `./.venv/bin/python -m pytest -q` → 163 passed.
+**Verify before running anything:** `./.venv/bin/python -m pytest -q` → 165 passed.
 
 ---
 
@@ -94,12 +94,19 @@ skyline run is handed the full context *and* the question, so zero is impossible
 unless the harness is at fault. HotpotQA's baseline came in at 0.0020, so it is
 probably the same defect. Every KVComm number from yesterday is void.
 
-**Step 1 — store the predictions.** This cannot be diagnosed without them, and
-`build_record` does not save them: `per_item` holds only `correct`, `i`, `score`.
-Add the generated text and the gold per item, or at minimum for the first N.
-Yesterday this forced a blind guess; do not repeat that.
+**Step 1 — store the predictions. DONE, no GPU needed.** `per_item` now carries
+`prediction`, `prediction_chars` and `gold` alongside `correct`/`i`/`score`
+(`lkv/run.py`). Scoring still runs on the full string; only the stored copy is
+cut, middle-elided to 600 chars a side behind a visible `...[N chars elided]...`
+marker — GSM8K reads `numbers[-1]` and MBPP+ takes the LAST ```python block, so
+head-only storage would have hidden both answers. `prediction_chars` is the
+**true** pre-elision length: that is the field separating "the model emitted
+nothing" from "the model ran into `max_new_tokens` mid-answer". Countries at 5
+tokens and HotpotQA at 48 are stored whole.
 
 **Step 2 — look at what the model actually emitted** for `kv_countries_skyline`.
+Re-run it first: every record now in `runs/` predates Step 1 and carries no
+predictions.
 Two leading hypotheses, in order:
 
 1. **`max_new_tokens=5` truncates before an answer appears.** Countries sets 5,
@@ -174,7 +181,7 @@ README commands do not use it. This is a hypothesis, not a finding.
 
 | | what | gate |
 |---|---|---|
-| **0** | Store predictions; diagnose and fix the Countries zeros. | skyline plausible (~0.55–0.69) |
+| **0** | ~~Store predictions~~ (done, on CPU); diagnose and fix the Countries zeros. | skyline plausible (~0.55–0.69) |
 | **1** | Re-run K1 Countries (6 conditions, ~1 min total). | **K1**: baseline ≤ 0.05, skyline ∈ [0.55, 0.69], r30 ≥ 0.42, r50 ≥ 0.55, monotone r30 ≤ r50 ≤ r70 (0.02 tol) |
 | **2** | The three no-thinking runs above (~50 min, run concurrently). | completes the 2×2 |
 | **3** | K2 HotpotQA (500) and Tipsheets (500). Tipsheets needs its loader registered in `lkv/data/__init__.py` — that is Task 16 proper. | **K2**: baseline ∈ [0.13, 0.25], skyline ≥ 0.66, r30 ≥ 0.26, r50 ≥ 0.53, r70 ≥ 0.62, strictly increasing |

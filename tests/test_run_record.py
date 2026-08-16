@@ -115,6 +115,96 @@ def test_main_keeps_per_item_aligned_across_batch_boundaries(monkeypatch, tmp_pa
         )
 
 
+def test_per_item_stores_the_prediction_and_the_gold(monkeypatch, tmp_path):
+    """Task 0. Six Countries conditions scored exactly 0.0000 including
+    skyline -- which is handed the full context AND the question, so zero is
+    impossible unless the harness is at fault. That could not be diagnosed,
+    because a record stores only whether each item was correct, never what the
+    model emitted: `predictions` reaches build_record and is used solely for a
+    length cross-check. A run that scores zero has to be able to say what it
+    saw, or the next zero costs another GPU session and another blind guess.
+    """
+    items = [{"gold": "0"}, {"gold": "1"}]
+
+    def fake_load_task(task, max_samples, seed):
+        return items
+
+    def fake_load_model(model_name, device):
+        return object(), object()
+
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None,
+                           **kwargs):
+        return [f"the answer is \\boxed{{{item['gold']}}}" for item in batch], []
+
+    monkeypatch.setattr("lkv.run.load_task", fake_load_task)
+    monkeypatch.setattr("lkv.run.load_model", fake_load_model)
+    monkeypatch.setattr("lkv.run.run_latentmas", fake_run_latentmas)
+
+    out = tmp_path / "out.json"
+    argv = ["--system", "latentmas", "--task", "gsm8k", "--model_name", "Qwen/Qwen3-8B",
+            "--latent_steps", "1", "--generate_bs", "1", "--device", "cpu", "--greedy",
+            "--out_json", str(out)]
+
+    assert main(argv) == 0
+    per_item = json.loads(out.read_text())["per_item"]
+
+    for k, entry in enumerate(per_item):
+        assert entry["prediction"] == f"the answer is \\boxed{{{k}}}", (
+            "per_item must carry the text the model actually produced"
+        )
+        assert entry["gold"] == str(k), "per_item must carry the gold it was scored against"
+        assert entry["prediction_chars"] == len(entry["prediction"])
+
+
+def test_a_long_prediction_is_elided_from_the_middle_keeping_both_ends(monkeypatch, tmp_path):
+    """Storing generations verbatim would put megabytes into a tracked runs/
+    record -- MBPP+ alone is 378 items at max_new_tokens=4096. Storing only a
+    head would be worse than useless for GSM8K and MBPP+, whose answers are
+    extracted from the END of the generation (`numbers[-1]`, the LAST ```python
+    block); storing only a tail loses the preamble that Task 0's leading
+    hypothesis is about. So the middle is dropped and both ends kept, and the
+    UNELIDED length is recorded separately -- that number is what distinguishes
+    "the model emitted nothing" from "the model ran into max_new_tokens".
+    """
+    body = "x" * 5000
+    items = [{"gold": "0"}]
+
+    def fake_load_task(task, max_samples, seed):
+        return items
+
+    def fake_load_model(model_name, device):
+        return object(), object()
+
+    def fake_run_latentmas(model, tokenizer, cfg, batch, trim_hook=None, projector=None,
+                           **kwargs):
+        return ["HEAD" + body + "\\boxed{0}" for _ in batch], []
+
+    monkeypatch.setattr("lkv.run.load_task", fake_load_task)
+    monkeypatch.setattr("lkv.run.load_model", fake_load_model)
+    monkeypatch.setattr("lkv.run.run_latentmas", fake_run_latentmas)
+
+    out = tmp_path / "out.json"
+    argv = ["--system", "latentmas", "--task", "gsm8k", "--model_name", "Qwen/Qwen3-8B",
+            "--latent_steps", "1", "--generate_bs", "1", "--device", "cpu", "--greedy",
+            "--out_json", str(out)]
+
+    assert main(argv) == 0
+    entry = json.loads(out.read_text())["per_item"][0]
+
+    full = "HEAD" + body + "\\boxed{0}"
+    assert entry["prediction_chars"] == len(full), (
+        "the recorded length must be the TRUE length, not the stored length"
+    )
+    assert len(entry["prediction"]) < len(full), "a 5000-char generation must not be stored whole"
+    assert entry["prediction"].startswith("HEAD"), "the head must survive"
+    assert entry["prediction"].endswith("\\boxed{0}"), (
+        "the tail must survive -- gsm8k/mbppplus answers are extracted from the end"
+    )
+    assert "elided" in entry["prediction"], "an elision must be visibly marked, not silent"
+    # The item is still scored on the FULL text, never on the stored excerpt.
+    assert entry["correct"] is True
+
+
 def test_projector_is_built_once_and_shared_across_batches(monkeypatch, tmp_path):
     """Finding 2(a) regression.
 

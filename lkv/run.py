@@ -19,6 +19,35 @@ from lkv.relay_calib import calibrate_relay
 from lkv.scoring import score_item
 
 
+# How much of each generation survives into per_item. The stored text is
+# DIAGNOSTIC ONLY -- scoring always runs on the full string (see main's loop),
+# so an elision can never change a number in the record.
+#
+# Verbatim storage is not an option: MBPP+ is 378 items at max_new_tokens=4096,
+# which would put megabytes of generation into a record that runs/ tracks in
+# git. Head-only would be worse than useless for exactly the two tasks that
+# generate at length -- GSM8K reads `numbers[-1]` and MBPP+ takes the LAST
+# ```python block, so both answers live at the END. Tail-only would lose the
+# preamble. So the MIDDLE goes and both ends stay. At these sizes the short
+# tasks are untouched: Countries generates 5 tokens, HotpotQA 48.
+_PRED_HEAD_CHARS = 600
+_PRED_TAIL_CHARS = 600
+
+
+def elide_middle(text: str) -> str:
+    """Both ends of `text`, with the middle replaced by a visible marker.
+
+    The marker states how many characters went, so nothing is dropped
+    silently and the true length stays recoverable from the record alone.
+    """
+    budget = _PRED_HEAD_CHARS + _PRED_TAIL_CHARS
+    if len(text) <= budget:
+        return text
+    return (f"{text[:_PRED_HEAD_CHARS]}"
+            f"\n...[{len(text) - budget} chars elided]...\n"
+            f"{text[-_PRED_TAIL_CHARS:]}")
+
+
 def _measuring_hook(base_hook, stats_out: dict):
     """Wrap a (possibly-None) trim hook so its LAST call each batch also
     measures the cache it hands back.
@@ -265,9 +294,30 @@ def main(argv=None) -> int:
                 hops = batch_hops
             for j, text in enumerate(texts):
                 i = offset + j
+                # Scored on the FULL text. Only the stored copy below is cut.
                 ok, score = score_item(cfg.task, text, batch[j])
                 predictions[i] = text
-                per_item[i] = {"i": i, "correct": bool(ok), "score": float(score)}
+                gold = batch[j].get("gold")
+                per_item[i] = {
+                    "i": i, "correct": bool(ok), "score": float(score),
+                    # A run that scores zero has to be able to say what it saw.
+                    # Six Countries conditions came back at exactly 0.0000 --
+                    # skyline among them, which is handed the full context AND
+                    # the question -- and could not be diagnosed at all,
+                    # because the record kept only the verdict and never the
+                    # generation. That cost a GPU session and a blind guess.
+                    "prediction": elide_middle(text),
+                    # The TRUE length, before eliding. This is the field that
+                    # separates "the model emitted nothing" from "the model ran
+                    # into max_new_tokens before reaching an answer" -- the two
+                    # hypotheses a zero score has to be sorted between.
+                    "prediction_chars": len(text),
+                    # gsm8k's gold is legitimately None when extract_gold_gsm8k
+                    # finds no `#### n`, and mbppplus's is a whole test suite,
+                    # so it is elided on the same terms and non-str golds pass
+                    # through untouched.
+                    "gold": elide_middle(gold) if isinstance(gold, str) else gold,
+                }
 
     if retention_count:
         # latentmas's own figure: the mean of what the trim hook actually kept
