@@ -98,6 +98,22 @@ def ragged_hidden(model, cache, base_lengths, past_mask, live_mask, cur_mask,
         torch.ones(q_len, q_len, device=device, dtype=torch.bool), diagonal=1
     ).view(1, 1, q_len, q_len)
 
+    # Layers that kept the SAME number of cached positions share a column set,
+    # and therefore share a mask, position_ids and rotary embedding exactly.
+    # prepare_key_cache leaves only two distinct lengths -- a kept layer holds
+    # the full cache, a trimmed one holds `sink` (1) position -- so this turns
+    # 32 mask allocations, cumsums and rotary_emb calls per decode step into 2.
+    #
+    # Pure memoisation, not an approximation: the key is the base length, which
+    # fully determines all three values, and `rotary_emb(hidden, ...)` reads
+    # only device and dtype off `hidden`, never its values, so sharing it across
+    # layers cannot leak one layer's activations into another's.
+    #
+    # It matters only where generation is long. At Countries' 5 tokens the
+    # overhead is invisible; at MBPP+'s 4096 it cost more than 10 minutes for a
+    # single batch of 8, which put one sweep condition past 8 hours.
+    per_base: dict[int, tuple] = {}
+
     for i, layer in enumerate(model.model.layers):
         base = int(base_lengths[i])
         held = int(cache.key_cache[i].shape[-2])
@@ -115,22 +131,27 @@ def ragged_hidden(model, cache, base_lengths, past_mask, live_mask, cur_mask,
                 "original sequence, so past_mask must span the longest layer."
             )
 
-        cols = torch.cat([past_mask[:, :base], live_mask, cur_mask], dim=1)
-        kv = int(cols.shape[1])
+        shared = per_base.get(base)
+        if shared is None:
+            cols = torch.cat([past_mask[:, :base], live_mask, cur_mask], dim=1)
+            kv = int(cols.shape[1])
 
-        mask = torch.zeros(batch, 1, q_len, kv, device=device, dtype=dtype)
-        mask = mask.masked_fill((cols == 0).view(batch, 1, 1, kv), neg)
-        block = mask[:, :, :, kv - q_len :].masked_fill(future, neg)
-        mask = torch.cat([mask[:, :, :, : kv - q_len], block], dim=-1)
+            mask = torch.zeros(batch, 1, q_len, kv, device=device, dtype=dtype)
+            mask = mask.masked_fill((cols == 0).view(batch, 1, 1, kv), neg)
+            block = mask[:, :, :, kv - q_len :].masked_fill(future, neg)
+            mask = torch.cat([mask[:, :, :, : kv - q_len], block], dim=-1)
 
-        # HF's own formula, applied to this layer's column set (module docstring).
-        pos = (cols.cumsum(-1) - 1).masked_fill(cols == 0, 1)
-        position_ids = pos[:, -q_len:]
+            # HF's own formula, applied to this layer's column set (module docstring).
+            pos = (cols.cumsum(-1) - 1).masked_fill(cols == 0, 1)
+            position_ids = pos[:, -q_len:]
 
-        cache_position = torch.arange(
-            base + n_live, base + n_live + q_len, device=device
-        )
-        rotary = model.model.rotary_emb(hidden, position_ids)
+            cache_position = torch.arange(
+                base + n_live, base + n_live + q_len, device=device
+            )
+            rotary = model.model.rotary_emb(hidden, position_ids)
+            per_base[base] = (mask, position_ids, cache_position, rotary)
+        else:
+            mask, position_ids, cache_position, rotary = shared
         out = layer(
             hidden,
             attention_mask=mask,

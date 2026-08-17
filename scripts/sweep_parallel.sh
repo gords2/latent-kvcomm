@@ -54,23 +54,43 @@ THINK=${THINK:-1}
 THINK_FLAG=""
 [ "$THINK" = "0" ] && THINK_FLAG="--no_thinking"
 
+# MAXTOK overrides the per-task max_new_tokens for EVERY condition, references
+# included, so the sweep stays internally paired. Unset leaves the task default
+# (MBPP+ 4096, upstream's code budget).
+#
+# Why it exists, measured rather than assumed. Generation stops early only when
+# EVERY row in the batch has hit EOS, so one runaway row sets the cost of the
+# whole batch. On the causal-ragged path a probe of 8 items produced seven
+# generations of 72-352 chars and one of 10243 (~2926 tokens): that single row
+# forced ~2926 decode steps instead of ~100, and the batch took 214s.
+#
+# The cap is safe here because the same task's stock reference run, over all
+# 378 items, tops out at 1363 chars (~389 tokens) -- p50 187, p90 466, p99 955
+# CHARS. A 640-token cap is ~1.6x the longest real answer ever observed, so it
+# truncates degenerate runaways and nothing else. Recorded in every run's
+# max_new_tokens field, and a DEVIATION from upstream's 4096 that belongs in
+# docs/FINDINGS.md whenever these numbers are cited.
+MAXTOK=${MAXTOK:-}
+MAXTOK_FLAG=""
+[ -n "$MAXTOK" ] && MAXTOK_FLAG="--max_new_tokens $MAXTOK"
+
 mkdir -p runs/logs
 
 # One condition per line: "<tag>|<extra args>". Kept as data rather than a
 # nest of loops so the concurrency layer below stays trivial to read.
 CONDITIONS=$(
-  echo "int_${TASK}_full|--system latentmas --top_layers 1.0 $THINK_FLAG"
-  echo "int_${TASK}_single|--system single $THINK_FLAG"
+  echo "int_${TASK}_full|--system latentmas --top_layers 1.0 $THINK_FLAG $MAXTOK_FLAG"
+  echo "int_${TASK}_single|--system single $THINK_FLAG $MAXTOK_FLAG"
   for SCOPE in all delta; do
     for R in 0.3 0.5 0.7; do
-      echo "int_${TASK}_${SCOPE}_r${R/0./}0|--system latentmas --top_layers $R --trim_scope $SCOPE --trim_every_hop --calib_source relay $CAUSAL_FLAG $THINK_FLAG"
+      echo "int_${TASK}_${SCOPE}_r${R/0./}0|--system latentmas --top_layers $R --trim_scope $SCOPE --trim_every_hop --calib_source relay $CAUSAL_FLAG $THINK_FLAG $MAXTOK_FLAG"
     done
   done
-  echo "int_${TASK}_all_r50_oneshot|--system latentmas --top_layers 0.5 --trim_scope all --calib_source relay $CAUSAL_FLAG $THINK_FLAG"
-  echo "int_${TASK}_all_r50_random|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --random_selection $CAUSAL_FLAG $THINK_FLAG"
+  echo "int_${TASK}_all_r50_oneshot|--system latentmas --top_layers 0.5 --trim_scope all --calib_source relay $CAUSAL_FLAG $THINK_FLAG $MAXTOK_FLAG"
+  echo "int_${TASK}_all_r50_random|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --random_selection $CAUSAL_FLAG $THINK_FLAG $MAXTOK_FLAG"
   case "$TASK" in
     gsm8k|mbppplus) : ;;   # announced below, not silently dropped
-    *) echo "int_${TASK}_all_r50_paircal|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --calib_source pair $CAUSAL_FLAG $THINK_FLAG" ;;
+    *) echo "int_${TASK}_all_r50_paircal|--system latentmas --top_layers 0.5 --trim_scope all --trim_every_hop --calib_source pair $CAUSAL_FLAG $THINK_FLAG $MAXTOK_FLAG" ;;
   esac
 )
 

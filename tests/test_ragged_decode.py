@@ -19,7 +19,11 @@ import pytest
 import torch
 
 from lkv.decode import generate_text_batch
-from lkv.kvcomm.ragged_decode import _ragged_forward, generate_with_ragged_cache
+from lkv.kvcomm.ragged_decode import (
+    _ragged_forward,
+    generate_with_ragged_cache,
+    ragged_hidden,
+)
 from lkv.kvcomm.trim import prepare_key_cache
 
 PAD_ID = 0
@@ -571,3 +575,61 @@ def test_per_row_eos_stops_that_row_only(tiny_qwen3):
         f"row 0 must be padded after EOS, got {got[0].tolist()}")
     # row 0 stopping must not truncate row 1
     assert torch.equal(got[1, :2], tail[1, :2]), "row 1 changed when row 0 stopped"
+
+
+def test_per_base_sharing_matches_recomputing_every_layer(tiny_qwen3, tiny_ids):
+    """ragged_hidden memoises mask/positions/rotary by cache length.
+
+    prepare_key_cache leaves only two distinct lengths (kept layers hold the
+    full cache, trimmed ones hold the sink), so 32 per-layer computations
+    collapse to 2 -- worth >10 minutes per MBPP+ batch. The risk of that
+    optimisation is silent: a wrongly shared mask or rotary would still produce
+    fluent text, just conditioned on the wrong positions.
+
+    This pins it against a reference that recomputes for EVERY layer, which is
+    exactly the pre-optimisation code path. Bit-exact equality is required --
+    sharing a tensor that genuinely depends only on the base length cannot
+    perturb anything, so any difference at all is a bug rather than numerical
+    noise.
+    """
+    ids, mask = tiny_ids
+    base = _prefill(tiny_qwen3, ids, mask)
+    trimmed = prepare_key_cache(base, [2])          # ragged: 2 distinct lengths
+    base_lengths = [int(k.shape[-2]) for k in trimmed.key_cache]
+    assert len(set(base_lengths)) == 2, (
+        f"fixture must be ragged for this test to mean anything, got {base_lengths}"
+    )
+
+    batch = int(ids.shape[0])
+    live = torch.zeros(batch, 0, dtype=torch.long)
+    nxt = torch.full((batch, 1), 5, dtype=torch.long)
+    cur = torch.ones(batch, 1, dtype=torch.long)
+
+    import copy
+    got = ragged_hidden(tiny_qwen3, copy.deepcopy(trimmed), base_lengths, mask,
+                        live, cur, input_ids=nxt)
+
+    # Reference: identical maths, but every layer computes its own tensors.
+    cache = copy.deepcopy(trimmed)
+    hidden = tiny_qwen3.model.embed_tokens(nxt)
+    dtype = next(tiny_qwen3.parameters()).dtype
+    neg = torch.finfo(dtype).min
+    for i, layer in enumerate(tiny_qwen3.model.layers):
+        b = base_lengths[i]
+        cols = torch.cat([mask[:, :b].long(), live, cur], dim=1)
+        kv = int(cols.shape[1])
+        m = torch.zeros(batch, 1, 1, kv, dtype=dtype)
+        m = m.masked_fill((cols == 0).view(batch, 1, 1, kv), neg)
+        pos = (cols.cumsum(-1) - 1).masked_fill(cols == 0, 1)[:, -1:]
+        rot = tiny_qwen3.model.rotary_emb(hidden, pos)
+        out = layer(hidden, attention_mask=m, position_ids=pos,
+                    past_key_value=cache, use_cache=True,
+                    cache_position=torch.arange(b, b + 1),
+                    position_embeddings=rot)
+        hidden = out[0] if isinstance(out, tuple) else out
+    expected = tiny_qwen3.model.norm(hidden)
+
+    assert torch.equal(got, expected), (
+        "sharing mask/positions/rotary across layers of equal cache length "
+        f"changed the result; max |delta| = {(got - expected).abs().max().item():.3e}"
+    )

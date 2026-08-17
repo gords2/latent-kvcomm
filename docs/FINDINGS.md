@@ -529,6 +529,83 @@ above concluding the method does not reproduce.
 
 ---
 
+## Phase 5 — the integration result. MEASURED 2026-08-16.
+
+MBPP+, n=378, Qwen3-8B, `--greedy --no_thinking --causal_ragged`,
+`latent_steps=0`, `max_new_tokens=640`. Every condition, references included,
+shares those settings, so the table is internally paired.
+
+| condition | accuracy | layer_ret | bytes/ref |
+|---|---|---|---|
+| relay, untrimmed | **0.7196** | 1.000 | 1.000 |
+| single agent | **0.7116** | n/a | n/a |
+| all, r70 | 0.5661 | 0.723 | 0.723 |
+| all, r50 | 0.5000 | 0.529 | 0.528 |
+| all, r30 | 0.3386 | 0.307 | 0.306 |
+| delta, r70 | 0.5794 | 0.723 | 0.723 |
+| delta, r50 | 0.5053 | 0.529 | 0.529 |
+| delta, r30 | 0.3333 | 0.308 | 0.308 |
+| r50, one-shot (first boundary only) | 0.6455 | 0.713 | 0.844 |
+| r50, random layers | 0.3651 | 0.501 | 0.501 |
+
+McNemar, paired on the same 378 items:
+
+| comparison | delta | p | |
+|---|---|---|---|
+| relay untrimmed vs single | +0.0079 | 0.72 | ns |
+| relay untrimmed vs trimmed r50 | +0.2196 | 4.7e-20 | significant |
+| trimmed r50 vs single | −0.2116 | 3.1e-17 | significant |
+| ranked r50 vs random r50 | +0.1349 | 5.0e-07 | significant |
+| one-shot vs every-hop at r50 | +0.1455 | 1.2e-09 | significant |
+| scope all vs delta at r50 | −0.0053 | 0.73 | ns |
+
+**The integration does not pay off on this task.** Trimming costs far more
+accuracy than the relay is worth. At r50 it saves 47% of the relay's cache
+bytes and loses 22 points, and the trimmed relay (0.5000) is beaten by a single
+agent holding no relay cache at all (0.7116, p=3.1e-17). No retention ratio
+tested reaches the single-agent score.
+
+Three secondary results are solid and more interesting than the headline:
+
+1. **KVComm's layer ranking transfers to the relay.** Ranked selection beats
+   random at identical retention by 13.5 points (p=5.0e-07). The mechanism
+   works; what fails is the setting it is applied in.
+2. **Compounding is the dominant cost, not trimming itself.** Trimming once at
+   the first boundary scores 0.6455; trimming at every boundary scores 0.5000
+   (p=1.2e-09). Roughly two thirds of the damage comes from repetition.
+3. **`trim_scope` all vs delta makes no difference** (p=0.73) at any ratio
+   tested, so that knob can be dropped from future sweeps.
+
+Read alongside the pair-setting result the picture is coherent rather than
+contradictory: on Tipsheets a receiver at 0.28 retention matched the
+full-context skyline (0.930 vs 0.928). One-shot cache transfer tolerates heavy
+trimming; a multi-hop relay does not, because each hop re-trims a cache that
+already lost information at the previous hop.
+
+**What this does NOT show.** The untrimmed relay beats one agent by only
++0.0079 here (p=0.72, ns) — under greedy decoding there is no relay advantage
+to preserve in the first place. The significant +0.0370 advantage was measured
+under SAMPLED decoding; the sweep is greedy because internal A/B comparisons
+must not mix the two. So this measures the cost of trimming a relay that, in
+this decoding regime, was not buying anything.
+
+**Deviation — `max_new_tokens` 640, not upstream's 4096.** Generation stops
+only when every row in the batch hits EOS, so one runaway row sets the batch
+cost: a causal-ragged probe produced seven answers of 72-352 chars and one of
+10243 (~2926 tokens), taking 214s for a single batch. The stock reference over
+all 378 items tops out at 1363 chars (~389 tokens); p50 187, p90 466, p99 955.
+640 tokens is ~1.6x the longest real answer observed, so it truncates
+degenerate runaways only. Applied to every condition including the references.
+
+**Performance note.** `ragged_hidden` memoises mask/position/rotary by cache
+length. `prepare_key_cache` leaves only two distinct lengths, so 32 per-layer
+computations per decode step collapse to 2: measured 718s -> 214s per batch,
+3.35x, verified bit-exact against per-layer recomputation
+(`tests/test_ragged_decode.py`). The causal path remains ~27x slower than stock
+generate, which is inherent to looping layers in Python.
+
+---
+
 ## Not yet measured
 
 Everything below needs GPU and is not yet known. Do not cite any number for these until it appears in this file.
