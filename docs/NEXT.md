@@ -2,33 +2,39 @@
 
 Read this first. It is the handoff for the GPU phase.
 
-**State as of 2026-08-16, second GPU session.** Task 0 is DONE. K1 was not a
-failed gate but a broken harness: two defects (D18, D19) put every Countries
-condition at exactly 0.0000. Both are fixed, and a third finding (D8) reversed a
-standing ruling. K1 now passes 4 of 5 checks and K2 passes 5 of 6 — see Results.
-All 29 run records are committed under `runs/`.
+**State as of 2026-08-16, end of the second GPU session. The measurement phase
+is COMPLETE.** All 21 plan tasks are implemented, both papers are reproduced as
+far as they reproduce, and the integration sweep has run.
 
-`scripts/bootstrap_box.sh` now does the whole box setup in one command; the
-manual recipe below is kept only as the explanation of what it does and why.
+**Read `docs/RESULTS.md` first** — it is every number in one place, with the
+caveats attached. Headline: KVComm reproduces (Tipsheets matches its skyline at
+0.28 retention), LatentMAS beats one agent in one of four configurations, and
+the integration does NOT pay off (trimming the relay costs 22 points to save
+47% of cache bytes, and loses to a single agent outright).
 
-- Suite: **165/165** green on CPU, no GPU or network needed.
+All 51 run records are committed under `runs/`. The droplet was destroyed.
+
+- Suite: **173/173** green on CPU, no GPU or network needed.
+- **Every number, with caveats: `docs/RESULTS.md`.**
 - Measured defects and deviations: `docs/FINDINGS.md`. **Read before citing any number.**
 - The spec: `docs/superpowers/plans/2026-08-09-latentmas-kvcomm.md` (21 tasks).
 - Per-task process log: `.superpowers/sdd/2026-08-09-latentmas-kvcomm/progress.md` (git-ignored, local only).
 
 ---
 
-## First action tomorrow
+## If resuming
+
+The measurement phase is done; `docs/RESULTS.md` closes with the five open
+threads worth picking up. Any of them needs a GPU box, so:
 
 1. **The user creates a GPU droplet and supplies the IP.** Claude cannot create
    or destroy droplets and must not handle API tokens.
-2. **No Hugging Face account is needed.** This was wrong yesterday and cost time:
-   the Qwen3 repos are Apache-2.0 and download anonymously; only `meta-llama/*`
-   is gated. `NousResearch/Meta-Llama-3.1-8B-Instruct` is in `MODEL_CHOICES` and
-   is what the KVComm gates use. **Never ask the user to `hf auth login`.**
-3. Then the setup below, then **Task 0**, which blocks everything else.
-
-Budget: the whole remaining set is roughly 3–5 GPU hours if nothing else breaks.
+2. **No Hugging Face account is needed.** Qwen3 is Apache-2.0 and downloads
+   anonymously; only `meta-llama/*` is gated, and
+   `NousResearch/Meta-Llama-3.1-8B-Instruct` is the ungated mirror the KVComm
+   gates use. **Never ask the user to `hf auth login`.**
+3. `scripts/bootstrap_box.sh` does the entire setup below in one command. The
+   manual recipe is kept only as the explanation of what it does and why.
 
 ---
 
@@ -87,7 +93,7 @@ mkdir -p lkv/data/files
 cp /tmp/kvcomm/dataloader/data/countries.jsonl /tmp/kvcomm/dataloader/data/tipsheets.jsonl lkv/data/files/
 ```
 
-**Verify before running anything:** `./.venv/bin/python -m pytest -q` → 165 passed.
+**Verify before running anything:** `./.venv/bin/python -m pytest -q` → 173 passed.
 
 ---
 
@@ -192,20 +198,19 @@ README commands do not use it. This is a hypothesis, not a finding.
 
 ---
 
-## Task order tomorrow
+## Task order — all complete
 
-| | what | gate |
+| | what | outcome |
 |---|---|---|
-| **0** | DONE. Predictions stored; D18+D19 fixed; skyline 0.635. | passed |
-| **1** | DONE. K1 4/5, K2 5/6 — see the table above. Remaining: r30 / r70. | **K1**: baseline ≤ 0.05, skyline ∈ [0.55, 0.69], r30 ≥ 0.42, r50 ≥ 0.55, monotone r30 ≤ r50 ≤ r70 (0.02 tol) |
-| **2** | The three no-thinking runs above (~50 min, run concurrently). | completes the 2×2 |
-| **3** | K2 HotpotQA (500) and Tipsheets (500). Tipsheets needs its loader registered in `lkv/data/__init__.py` — that is Task 16 proper. | **K2**: baseline ∈ [0.13, 0.25], skyline ≥ 0.66, r30 ≥ 0.26, r50 ≥ 0.53, r70 ≥ 0.62, strictly increasing |
-| **4** | Task 20 integration sweep: 2 scopes × 3 ratios + random and pair-calibration controls, **each run twice, `--causal_ragged` off and on**. | — |
-| **5** | Task 21 Step 5: re-run K1 conditions with `--causal_ragged`; record `ratio \| stock \| corrected \| delta` against the published 0.51/0.62/0.62. | — |
+| **0** | Diagnose K1's zeros | DONE — two defects, D18 + D19 |
+| **1** | K1 Countries | DONE — 4/5 pass, r30 open |
+| **2** | The no-thinking 2x2 | DONE — MBPP+ off is the only significant cell |
+| **3** | K2 HotpotQA + Tipsheets | DONE — HotpotQA 5/6, Tipsheets clean |
+| **4** | Task 20 integration sweep | DONE — 10 conditions, see RESULTS.md §4 |
+| **5** | Task 21 Step 5, the D8 gap | DONE — stock reproduces nothing, see §3 |
 
-`scripts/gate_latentmas.sh`, `scripts/gate_kvcomm.sh` and `scripts/chain_gates.sh`
-all exist and skip any condition whose JSON is present, so they are safe to
-re-run after an interruption.
+Remaining threads are listed at the end of `docs/RESULTS.md`. All gate scripts
+skip any condition whose JSON exists, so they are safe to re-run.
 
 ---
 
